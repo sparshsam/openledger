@@ -4,7 +4,22 @@ Money without noise.
 
 QuietLedger is a private, self-hostable personal finance tracker for calmly understanding where your life energy is going. The MVP is intentionally local-first: no bank connection, no brokerage features, no shame language, no engagement tricks.
 
-## Current MVP
+![QuietLedger desktop dashboard](public/screenshots/dashboard-desktop.png)
+
+<details>
+<summary>Mobile screenshot</summary>
+
+![QuietLedger mobile dashboard](public/screenshots/dashboard-mobile.png)
+
+</details>
+
+## Current Status
+
+QuietLedger is an early public MVP. It is usable as a browser-local personal ledger today, but it does not yet include hosted accounts, encrypted sync, bank aggregation, multi-device conflict handling, or production-grade import coverage for every bank format.
+
+The app currently focuses on calm manual tracking, CSV import, JSON backups, and local persistence.
+
+## Current Features
 
 - Calm dark dashboard with paper-ledger surfaces.
 - Local seed data for accounts, monthly snapshots, categorization patterns, financial memory, forecast items, life-cost timeline, notes, and transactions.
@@ -15,6 +30,19 @@ QuietLedger is a private, self-hostable personal finance tracker for calmly unde
 - Local browser persistence with schema-versioned `localStorage`, last-saved status, JSON backup restore, reset, and clear controls.
 - Plain JSON export with `schemaVersion`, `exportedAt`, `accounts`, `transactions`, `importedTransactions`, `importMetadata`, `monthlySnapshots`, `memories`, and `forecastItems`.
 - PWA manifest and service worker shell for installability experiments.
+
+## Privacy Model
+
+QuietLedger is local-first in its current form:
+
+- Ledger data is stored in your browser using `localStorage`.
+- CSV parsing happens client-side in the browser.
+- JSON backup import/export happens client-side in the browser.
+- No bank login is requested.
+- No Plaid, Flinks, brokerage, or bank aggregation connection is used.
+- No backend, database, analytics pipeline, or server sync is connected.
+
+Because browser storage can be cleared by browser settings, private browsing, device cleanup tools, or switching devices, JSON export is the recommended backup path. Export a backup after important imports or manual edits, and keep that file somewhere you control.
 
 ## CSV Import
 
@@ -102,6 +130,43 @@ Before sharing UI changes, check these views:
 - PWA basics
 - Future boundary for Supabase/Postgres
 - AGPL-3.0-or-later
+
+## Deployment
+
+QuietLedger is ready for Vercel deployment as a standard Next.js app. No custom `vercel.json` is required for the current build.
+
+Recommended Vercel flow:
+
+```bash
+npm install
+npm run lint
+npm run typecheck
+npm run build
+npx vercel --prod
+```
+
+When using the Vercel dashboard, import the GitHub repository and keep the default framework preset for Next.js.
+
+## GitHub Topics
+
+Recommended repository topics:
+
+```txt
+personal-finance
+local-first
+privacy
+pwa
+nextjs
+typescript
+self-hosted
+csv-import
+agplv3
+budgeting
+```
+
+## License
+
+QuietLedger is licensed under **AGPL-3.0-or-later**. See [`LICENSE`](LICENSE).
 
 ## Development
 

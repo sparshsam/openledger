@@ -2,7 +2,9 @@
   "name": "QuietLedger",
   "short_name": "QuietLedger",
   "description": "Money without noise.",
+  "categories": ["finance", "productivity", "utilities"],
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#10100e",
   "theme_color": "#10100e",
@@ -12,6 +14,22 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard-desktop.png",
+      "sizes": "1440x1000",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "QuietLedger desktop dashboard"
+    },
+    {
+      "src": "/screenshots/dashboard-mobile.png",
+      "sizes": "390x900",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "QuietLedger mobile dashboard"
     }
   ]
 }
