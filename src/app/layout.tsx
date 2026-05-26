@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://quietledger.vercel.app"),
+  metadataBase: new URL("https://quietledger-rust.vercel.app"),
   title: {
     default: "QuietLedger",
     template: "%s · QuietLedger",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "QuietLedger",
     description: "Money without noise. A private, local-first finance tracker for real life.",
-    url: "https://quietledger.vercel.app",
+    url: "https://quietledger-rust.vercel.app",
     siteName: "QuietLedger",
     images: [
       {
