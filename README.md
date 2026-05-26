@@ -4,7 +4,7 @@ Money without noise.
 
 QuietLedger is a private, self-hostable personal finance tracker for calmly understanding where your life energy is going. The MVP is intentionally local-first: no bank connection, no brokerage features, no shame language, no engagement tricks.
 
-**Live app:** [https://quietledger-rust.vercel.app](https://quietledger-rust.vercel.app)
+**Live app:** [https://quietledger.vercel.app](https://quietledger.vercel.app)
 
 ![QuietLedger desktop dashboard](public/screenshots/dashboard-desktop.png)
 
@@ -139,7 +139,7 @@ QuietLedger is ready for Vercel deployment as a standard Next.js app. No custom 
 
 Current production deployment:
 
-[https://quietledger-rust.vercel.app](https://quietledger-rust.vercel.app)
+[https://quietledger.vercel.app](https://quietledger.vercel.app)
 
 Recommended Vercel flow:
 
