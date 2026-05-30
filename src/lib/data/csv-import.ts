@@ -13,6 +13,10 @@ export type ImportWarning = {
   message: string;
 };
 
+const MAX_CSV_ROWS = 10_000;
+const MAX_CSV_CELL_LENGTH = 10_000;
+const BOM_REGEX = /^﻿/;
+
 export type ImportPreviewRow = {
   rowNumber: number;
   raw: Record<string, string>;
@@ -45,14 +49,22 @@ const categoryKeywords: Array<[string, string[]]> = [
 ];
 
 export function parseCsv(text: string): ParsedCsv {
+  // Strip BOM character if present
+  const clean = text.replace(BOM_REGEX, "");
+
   const rows: string[][] = [];
   let cell = "";
   let row: string[] = [];
   let quoted = false;
 
-  for (let index = 0; index < text.length; index += 1) {
-    const char = text[index];
-    const next = text[index + 1];
+  for (let index = 0; index < clean.length; index += 1) {
+    const char = clean[index];
+    const next = clean[index + 1];
+
+    // Enforce max cell length to prevent DoS
+    if (cell.length > MAX_CSV_CELL_LENGTH) {
+      cell = cell.slice(0, MAX_CSV_CELL_LENGTH);
+    }
 
     if (char === '"' && quoted && next === '"') {
       cell += '"';
@@ -74,7 +86,10 @@ export function parseCsv(text: string): ParsedCsv {
     if ((char === "\n" || char === "\r") && !quoted) {
       if (char === "\r" && next === "\n") index += 1;
       row.push(cell.trim());
-      if (row.some(Boolean)) rows.push(row);
+      if (row.some(Boolean)) {
+        rows.push(row);
+        if (rows.length > MAX_CSV_ROWS) break;
+      }
       row = [];
       cell = "";
       continue;
@@ -83,13 +98,16 @@ export function parseCsv(text: string): ParsedCsv {
     cell += char;
   }
 
-  row.push(cell.trim());
-  if (row.some(Boolean)) rows.push(row);
+  // Handle trailing cell — only if quotes were closed
+  if (!quoted) {
+    row.push(cell.trim());
+    if (row.some(Boolean) && rows.length <= MAX_CSV_ROWS) rows.push(row);
+  }
 
   const headers = dedupeHeaders(rows[0] ?? []);
   return {
     headers,
-    rows: rows.slice(1).map((values) =>
+    rows: rows.slice(1, MAX_CSV_ROWS + 1).map((values) =>
       headers.reduce<Record<string, string>>((record, header, index) => {
         record[header] = values[index] ?? "";
         return record;

@@ -183,7 +183,7 @@ export default function Home() {
   });
   const [accountError, setAccountError] = useState("");
   const jsonImportRef = useRef<HTMLInputElement | null>(null);
-  const skipNextSaveRef = useRef(false);
+  const skipNextSaveCountRef = useRef(0);
   const nextSaveNoticeRef = useRef<string | null>(null);
 
   const importedTransactions = transactions.filter((transaction) => transaction.source === "csv");
@@ -255,8 +255,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (skipNextSaveRef.current) {
-      skipNextSaveRef.current = false;
+    if (skipNextSaveCountRef.current > 0) {
+      skipNextSaveCountRef.current -= 1;
       return;
     }
     const saved = saveLedgerState(window.localStorage, {
@@ -284,18 +284,26 @@ export default function Home() {
     setSelectedMemoryId(state.memories[0]?.id ?? "feb-2026");
   }
 
+  const MAX_CSV_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+  const MAX_CSV_ROWS = 10_000;
+
   async function handleCsvFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (file.size > MAX_CSV_FILE_SIZE) {
+      setImportNotice(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 50 MB.`);
+      return;
+    }
+
     const text = await file.text();
     const parsed = parseCsv(text);
-    const nextImportId = `import-${Date.now()}`;
+    const nextImportId = `import-${crypto.randomUUID()}`;
     setParsedCsv(parsed);
     setCsvFileName(file.name);
     setCsvMapping(guessMapping(parsed.headers));
     setCurrentImportId(nextImportId);
-    setImportNotice(`${parsed.rows.length} rows parsed locally. Review the mapping before saving.`);
+    setImportNotice(`${parsed.rows.length} rows parsed locally.${parsed.rows.length >= MAX_CSV_ROWS ? " Row limit reached." : ""} Review the mapping before saving.`);
   }
 
   function saveImportedTransactions() {
@@ -341,6 +349,7 @@ export default function Home() {
 
   function resetToDemoData() {
     if (!window.confirm("Reset QuietLedger to the demo ledger? Your local imported transactions will be replaced.")) return;
+    skipNextSaveCountRef.current = 2;
     nextSaveNoticeRef.current = "Demo ledger restored and saved locally.";
     applyLedgerState(createDemoLedgerState());
   }
@@ -348,7 +357,7 @@ export default function Home() {
   function clearLocalData() {
     if (!window.confirm("Clear saved local QuietLedger data from this browser? Export a backup first if you need it.")) return;
     clearLedgerState(window.localStorage);
-    skipNextSaveRef.current = true;
+    skipNextSaveCountRef.current = 2;
     applyLedgerState(createDemoLedgerState());
     setLastSavedAt(null);
     setStorageNotice("Local browser data cleared. Demo fallback is showing.");
@@ -363,7 +372,7 @@ export default function Home() {
 
     const signedAmount = transactionForm.direction === "expense" ? -Math.abs(amountValue) : Math.abs(amountValue);
     const nextTransaction: Transaction = {
-      id: transactionForm.id ?? `manual-${Date.now()}`,
+      id: transactionForm.id ?? `manual-${crypto.randomUUID()}`,
       date: transactionForm.date,
       description: transactionForm.description.trim(),
       merchant: transactionForm.merchant.trim() || undefined,
@@ -412,7 +421,7 @@ export default function Home() {
   function duplicateTransaction(transaction: Transaction) {
     const copy: Transaction = {
       ...transaction,
-      id: `manual-${Date.now()}`,
+      id: `manual-${crypto.randomUUID()}`,
       description: `${transaction.description} copy`,
       source: "manual",
     };
@@ -434,7 +443,7 @@ export default function Home() {
     }
 
     const nextAccount: Account = {
-      id: accountForm.id ?? `account-${Date.now()}`,
+      id: accountForm.id ?? `account-${crypto.randomUUID()}`,
       name: accountForm.name.trim(),
       kind: accountForm.kind,
       subtitle: accountForm.subtitle.trim() || (accountKindOptions.find((item) => item.value === accountForm.kind)?.label ?? "Account"),
@@ -1082,11 +1091,11 @@ function ManualTransactionForm({
         </label>
         <label>
           <span>Description</span>
-          <input value={values.description} onChange={(event) => onChange({ ...values, description: event.target.value })} placeholder="Grocery Store" />
+          <input value={values.description} maxLength={200} onChange={(event) => onChange({ ...values, description: event.target.value })} placeholder="Grocery Store" />
         </label>
         <label>
           <span>Merchant</span>
-          <input value={values.merchant} onChange={(event) => onChange({ ...values, merchant: event.target.value })} placeholder="Optional" />
+          <input value={values.merchant} maxLength={200} onChange={(event) => onChange({ ...values, merchant: event.target.value })} placeholder="Optional" />
         </label>
         <label>
           <span>Amount</span>
@@ -1121,7 +1130,7 @@ function ManualTransactionForm({
         </label>
         <label className="wide-field">
           <span>Notes</span>
-          <input value={values.note} onChange={(event) => onChange({ ...values, note: event.target.value })} placeholder="Optional memory or context" />
+          <input value={values.note} maxLength={500} onChange={(event) => onChange({ ...values, note: event.target.value })} placeholder="Optional memory or context" />
         </label>
       </div>
       {error ? <p className="gentle-error">{error}</p> : <p className="gentle-help">Manual entries stay in this browser and are included in backups.</p>}
@@ -1160,7 +1169,7 @@ function AccountManagement({
       <div className="form-grid account-form-grid">
         <label>
           <span>Name</span>
-          <input value={values.name} onChange={(event) => onChange({ ...values, name: event.target.value })} placeholder="Everyday card" />
+          <input value={values.name} maxLength={100} onChange={(event) => onChange({ ...values, name: event.target.value })} placeholder="Everyday card" />
         </label>
         <label>
           <span>Type</span>
@@ -1178,7 +1187,7 @@ function AccountManagement({
         </label>
         <label>
           <span>Subtitle</span>
-          <input value={values.subtitle} onChange={(event) => onChange({ ...values, subtitle: event.target.value })} placeholder="Optional" />
+          <input value={values.subtitle} maxLength={100} onChange={(event) => onChange({ ...values, subtitle: event.target.value })} placeholder="Optional" />
         </label>
       </div>
       {error ? <p className="gentle-error">{error}</p> : <p className="gentle-help">Archive hides an account but keeps its transaction history.</p>}
