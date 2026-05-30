@@ -33,7 +33,7 @@ Users should export backups before clearing browser data, switching browsers, or
 
 CSV parsing and JSON backup restore run in the browser. QuietLedger does not request bank credentials, does not connect to a server, and does not sync transaction data in the current local mode.
 
-Future sync should remain opt-in and self-hostable. Supabase/Postgres can replace the persistence boundary later without changing the dashboard’s core data shape.
+Future sync should remain opt-in and self-hostable. Supabase/Postgres can replace the persistence boundary later without changing the dashboard's core data shape.
 
 ## Screenshot Checklist
 

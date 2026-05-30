@@ -1,8 +1,28 @@
 {
   "name": "quietledger",
   "version": "0.1.0",
+  "description": "A private, local-first personal finance ledger for calm CSV-based tracking.",
   "private": true,
   "license": "AGPL-3.0-or-later",
+  "homepage": "https://quietledger.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sparshsam/quietledger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sparshsam/quietledger/issues"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "keywords": [
+    "personal-finance",
+    "budgeting",
+    "local-first",
+    "privacy",
+    "csv-import",
+    "pwa"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
