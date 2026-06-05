@@ -67,22 +67,78 @@ export function normalizeLedgerBackup(value: unknown, source: "saved" | "backup"
   }
 
   const demo = createDemoLedgerState();
+  const rawAccounts = Array.isArray(value.accounts) ? value.accounts : demo.accounts;
+  const rawTransactions = Array.isArray(value.transactions) ? value.transactions : demo.transactions;
+  const rawSnapshots = Array.isArray(value.monthlySnapshots) ? value.monthlySnapshots : demo.monthlySnapshots;
+  const rawMemories = Array.isArray(value.memories) ? value.memories : demo.memories;
+  const rawForecast = Array.isArray(value.forecastItems) ? value.forecastItems : demo.forecastItems;
+  const rawMetadata = Array.isArray(value.importMetadata) ? value.importMetadata : [];
+
+  const validAccounts = rawAccounts
+    .filter(isRecord)
+    .filter((a) => typeof a.id === "string" && typeof a.name === "string" && typeof a.balance === "number");
+  const validTransactions = rawTransactions
+    .filter(isRecord)
+    .filter(
+      (t) =>
+        typeof t.id === "string" &&
+        typeof t.date === "string" &&
+        typeof t.description === "string" &&
+        typeof t.amount === "number" &&
+        typeof t.accountId === "string",
+    );
+  const validSnapshots = rawSnapshots
+    .filter(isRecord)
+    .filter((s) => typeof s.month === "string" && Array.isArray(s.metrics));
+  const validMemories = rawMemories
+    .filter(isRecord)
+    .filter((m) => typeof m.month === "string" && typeof m.summary === "string");
+  const validForecast = rawForecast
+    .filter(isRecord)
+    .filter((f) => typeof f.date === "string" && typeof f.label === "string" && typeof f.amount === "number");
+  const validMetadata = rawMetadata
+    .filter(isRecord)
+    .filter((m) => typeof m.id === "string" && typeof m.fileName === "string");
+
   const state: PersistedLedgerState = {
     schemaVersion: LEDGER_SCHEMA_VERSION,
     savedAt: typeof value.savedAt === "string" ? value.savedAt : new Date().toISOString(),
-    accounts: Array.isArray(value.accounts) ? value.accounts : demo.accounts,
-    transactions: Array.isArray(value.transactions) ? value.transactions : demo.transactions,
-    monthlySnapshots: Array.isArray(value.monthlySnapshots) ? value.monthlySnapshots : demo.monthlySnapshots,
-    memories: Array.isArray(value.memories) ? value.memories : demo.memories,
-    forecastItems: Array.isArray(value.forecastItems) ? value.forecastItems : demo.forecastItems,
-    importMetadata: Array.isArray(value.importMetadata) ? value.importMetadata : [],
+    accounts: validAccounts.length > 0 ? (validAccounts as PersistedLedgerState["accounts"]) : demo.accounts,
+    transactions:
+      validTransactions.length > 0 ? (validTransactions as PersistedLedgerState["transactions"]) : demo.transactions,
+    monthlySnapshots:
+      validSnapshots.length > 0 ? (validSnapshots as PersistedLedgerState["monthlySnapshots"]) : demo.monthlySnapshots,
+    memories: validMemories.length > 0 ? (validMemories as PersistedLedgerState["memories"]) : demo.memories,
+    forecastItems: validForecast.length > 0 ? (validForecast as PersistedLedgerState["forecastItems"]) : demo.forecastItems,
+    importMetadata: validMetadata.length > 0 ? (validMetadata as PersistedLedgerState["importMetadata"]) : [],
   };
+
+  const filteredCount =
+    rawAccounts.length +
+    rawTransactions.length +
+    rawSnapshots.length +
+    rawMemories.length +
+    rawForecast.length +
+    rawMetadata.length -
+    (validAccounts.length +
+      validTransactions.length +
+      validSnapshots.length +
+      validMemories.length +
+      validForecast.length +
+      validMetadata.length);
+
+  const warning =
+    filteredCount > 0
+      ? `${filteredCount} invalid entr${filteredCount === 1 ? "y" : "ies"} filtered from backup.`
+      : schemaVersion < LEDGER_SCHEMA_VERSION
+        ? "Older backup was upgraded safely for this session."
+        : undefined;
 
   return {
     ok: true,
     state,
-    source: source === "saved" ? "saved" : "saved",
-    warning: schemaVersion < LEDGER_SCHEMA_VERSION ? "Older backup was upgraded safely for this session." : undefined,
+    source: "saved",
+    warning,
   };
 }
 

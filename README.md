@@ -186,14 +186,75 @@ npx vercel --prod
 
 ## Roadmap
 
-- Broader CSV format coverage and import test fixtures.
-- Transaction search and richer filtering.
-- Editable categories and category rules.
-- Subscription radar.
-- Calm forecast improvements.
-- Optional encrypted local storage strategy.
-- Optional self-hosted Supabase/Postgres sync.
-- Import/export schema migration tests.
+QuietLedger should remain a personal ledger, not a financial product funnel. The roadmap expands clarity, portability, and privacy without adding bank surveillance, brokerage prompts, or shame-based finance dashboards.
+
+### Near-Term
+
+- **Broader CSV format coverage** — support more bank/export layouts through fixtures, mapping presets, and regression tests.
+- **Transaction search and richer filtering** — search by merchant, note, account, category, date range, and amount range.
+- **Editable categories and category rules** — custom categories, local keyword rules, and manual override memory.
+- **Subscription radar** — identify repeating obligations and upcoming charges without connecting to bank APIs.
+- **Calm forecast improvements** — clearer upcoming cash-flow view, recurring bills, and simple month-ahead projections.
+- **Import/export schema migration tests** — keep old JSON backups restorable as the app evolves.
+- **Backup reminders** — gentle local-only prompts after major imports or edits.
+
+### Mid-Term
+
+- **Optional encrypted local storage** — user-controlled passphrase encryption for browser-local ledgers.
+- **IndexedDB storage engine** — move beyond `localStorage` for larger ledgers, safer migrations, and better performance.
+- **Local-first PWA mode** — stronger offline shell, cached app assets, and no required network after load.
+- **Rules-based categorization** — transparent local rules rather than opaque AI categorization.
+- **Monthly closing flow** — let users freeze a monthly snapshot and compare future changes against it.
+- **Debt and obligation tracker** — simple balances, payment targets, and due-date awareness without lending/refinancing ads.
+- **Printable reports** — clean PDF-style exports for monthly summaries, taxes, household planning, or personal review.
+
+### Long-Term Vision
+
+- **Self-hosted sync option** — optional Supabase/Postgres sync for users who want multi-device access while controlling their own infrastructure.
+- **End-to-end encrypted sync research** — explore sync designs where hosted infrastructure cannot read ledger contents.
+- **Desktop wrapper** — package QuietLedger as a local desktop app for people who prefer filesystem-backed records.
+- **Portable finance archive** — durable export format for accounts, transactions, snapshots, rules, notes, and forecast items.
+- **Open ledger schema** — a documented, app-agnostic schema that other personal finance tools can import or export.
+- **Household mode** — shared ledgers for families/roommates with careful permission boundaries.
+- **Quiet financial memory** — plain-language notes about major money events, obligations, and recurring patterns without pretending to be an advisor.
+
+### Optional Base / OpenProof Direction
+
+Any Web3 feature should support integrity and portability, not speculation.
+
+Possible proof-oriented features:
+
+- **Ledger integrity receipts** — hash a JSON backup locally and optionally anchor the hash through an OpenProof-style flow.
+- **Monthly snapshot proofs** — prove that a specific monthly ledger snapshot existed at a certain time without publishing its contents.
+- **Portable backup verification** — verify that an imported backup matches a previously saved receipt.
+- **Onchain audit trail for public templates** — anchor hashes of public category-rule packs or import presets so users can verify they were not silently altered.
+
+What should never happen:
+
+- no wallet required to use the app
+- no token
+- no yield product
+- no lending funnel
+- no bank-login requirement
+- no public onchain storage of personal financial data
+- no financial advice claims
+
+Base, if used, should be a quiet notary for hashes. The ledger itself stays private and user-controlled.
+
+## Future Philosophy
+
+QuietLedger belongs to a broader family of calm tools around ownership, proof, privacy, and restraint.
+
+The direction is:
+
+- **Money without surveillance** — understand finances without handing over bank credentials.
+- **Records without lock-in** — export, inspect, migrate, and back up your own ledger.
+- **Clarity without shame** — dashboards should inform, not scold.
+- **Proof without exposure** — hashes can verify backups or snapshots without revealing transactions.
+- **Local-first before cloud sync** — useful offline first, optional infrastructure later.
+- **Base as infrastructure, not speculation** — verification only, never a reason to financialize the app.
+
+QuietLedger should feel less like a finance casino and more like a small wooden desk with a clean notebook, a lamp, and no one peeking over your shoulder. 🕯️
 
 ## Contributing
 
