@@ -276,3 +276,17 @@ Before opening a pull request, please read [CONTRIBUTING.md](CONTRIBUTING.md). F
 QuietLedger is licensed under **AGPL-3.0-or-later**. See [LICENSE](LICENSE).
 
 This matters for hosted or network-accessible modifications: the AGPL is intentionally stronger than a permissive license. If you run a modified version for others over a network, you need to provide the corresponding source under the AGPL terms.
+
+---
+
+*Last updated: June 2026*
+
+## Tech Stack
+
+| Layer | Choice |
+|-------|--------|
+| Framework | Next.js (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Data | Local-first (IndexedDB) |
+| Deployment | Vercel |
