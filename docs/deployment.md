@@ -31,4 +31,4 @@ npm run typecheck  # TypeScript validation
 
 ## Browser Support
 
-QuietLedger targets modern browsers. localStorage persistence may be cleared by browser settings, private browsing, or cleanup tools — export JSON backups regularly.
+OpenLedger targets modern browsers. localStorage persistence may be cleared by browser settings, private browsing, or cleanup tools — export JSON backups regularly.

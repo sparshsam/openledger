@@ -1,8 +1,8 @@
-# QuietLedger — Claude Code Instructions
+# OpenLedger — Claude Code Instructions
 
 ## Project Overview
 
-QuietLedger is a private, local-first finance tool for everyday budgeting and records. Built with Next.js + TypeScript.
+OpenLedger is a private, local-first finance tool for everyday budgeting and records. Built with Next.js + TypeScript.
 
 ## Tech Stack
 
@@ -23,9 +23,11 @@ npm run typecheck # TypeScript type check
 
 ## Architecture Constraints
 
-1. **Local-first.** No backend, no accounts, no cloud sync.
-2. **Privacy by design.** All data stays on the user's device.
+1. **Local-first.** No backend, no accounts, no cloud sync by default.
+2. **Privacy by design.** All data stays on the user's device in local mode.
 3. **No tracking.** No analytics, no telemetry.
+4. **Supabase foundation prepared.** Tables use `openledger_` prefix (shared Elora project). Schema is applied but unused until sync is enabled.
+5. **No service-role exposure to client.** `SUPABASE_SERVICE_ROLE_KEY` is server-only.
 
 ## Branch Naming
 

@@ -2,9 +2,9 @@
 
 ## Money Without Noise
 
-QuietLedger exists because most personal finance software is built for financial institutions, not for the people whose money it tracks. The default design vocabulary — budgets, goals, scores, streaks, alerts — comes from a world that profits from engagement, not from clarity.
+OpenLedger exists because most personal finance software is built for financial institutions, not for the people whose money it tracks. The default design vocabulary — budgets, goals, scores, streaks, alerts — comes from a world that profits from engagement, not from clarity.
 
-QuietLedger takes a different approach. A ledger is a tool for recording and understanding, not for optimising or gamifying. The interface is deliberately calm: dark surfaces, paper-like textures, no shame language, no notifications telling you that you failed at something you never opted into.
+OpenLedger takes a different approach. A ledger is a tool for recording and understanding, not for optimising or gamifying. The interface is deliberately calm: dark surfaces, paper-like textures, no shame language, no notifications telling you that you failed at something you never opted into.
 
 ## Local-First as a Privacy Boundary
 
@@ -16,7 +16,7 @@ The decision to be local-first limits certain features (multi-device sync, bank 
 
 ## The Vocabulary Matters
 
-QuietLedger avoids terms like "budget," "goal," "net worth," and "financial health." These words carry judgment and implied norms. Instead, the app uses:
+OpenLedger avoids terms like "budget," "goal," "net worth," and "financial health." These words carry judgment and implied norms. Instead, the app uses:
 
 - **Ledger** — a record of what happened, not what should have happened
 - **Accounts** — containers for understanding, not categories of success

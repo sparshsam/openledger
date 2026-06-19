@@ -15,16 +15,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://quietledger.vercel.app"),
   title: {
-    default: "QuietLedger",
-    template: "%s · QuietLedger",
+    default: "OpenLedger",
+    template: "%s · OpenLedger",
   },
   description: "Money without noise. A private, local-first finance tracker for real life.",
   manifest: "/manifest.webmanifest",
-  applicationName: "QuietLedger",
+  applicationName: "OpenLedger",
   authors: [{ name: "Sparsh Sam", url: "https://github.com/sparshsam" }],
   creator: "Sparsh Sam",
   keywords: [
-    "QuietLedger",
+    "OpenLedger",
     "personal finance",
     "local-first",
     "privacy",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     "PWA",
   ],
   appleWebApp: {
-    title: "QuietLedger",
+    title: "OpenLedger",
     capable: true,
     statusBarStyle: "black-translucent",
   },
@@ -41,16 +41,16 @@ export const metadata: Metadata = {
     icon: "/icons/icon.svg",
   },
   openGraph: {
-    title: "QuietLedger",
+    title: "OpenLedger",
     description: "Money without noise. A private, local-first finance tracker for real life.",
     url: "https://quietledger.vercel.app",
-    siteName: "QuietLedger",
+    siteName: "OpenLedger",
     images: [
       {
         url: "/screenshots/dashboard-desktop.png",
         width: 1440,
         height: 1000,
-        alt: "QuietLedger dashboard showing a calm local-first personal finance ledger.",
+        alt: "OpenLedger dashboard showing a calm local-first personal finance ledger.",
       },
     ],
     locale: "en_CA",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "QuietLedger",
+    title: "OpenLedger",
     description: "Money without noise. A private, local-first finance tracker for real life.",
     images: ["/screenshots/dashboard-desktop.png"],
   },

@@ -1,8 +1,8 @@
-# QuietLedger — Research Note
+# OpenLedger — Research Note
 
 ## Context
 
-QuietLedger was created to address a gap in personal finance tooling: most available software either requires bank account aggregation (Plaid, Flinks), pushes commercial financial products (loans, refinancing, brokerage accounts), or employs engagement-optimized UI patterns (streaks, goals, scores, notifications).
+OpenLedger was created to address a gap in personal finance tooling: most available software either requires bank account aggregation (Plaid, Flinks), pushes commercial financial products (loans, refinancing, brokerage accounts), or employs engagement-optimized UI patterns (streaks, goals, scores, notifications).
 
 The design premise is that understanding personal finances does not require surveillance infrastructure, product funnels, or behavioral manipulation.
 

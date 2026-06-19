@@ -1,6 +1,6 @@
 {
-  "name": "QuietLedger",
-  "short_name": "QuietLedger",
+  "name": "OpenLedger",
+  "short_name": "OpenLedger",
   "description": "Money without noise.",
   "categories": ["finance", "productivity", "utilities"],
   "start_url": "/",
@@ -22,14 +22,14 @@
       "sizes": "1440x1000",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "QuietLedger desktop dashboard"
+      "label": "OpenLedger desktop dashboard"
     },
     {
       "src": "/screenshots/dashboard-mobile.png",
       "sizes": "390x900",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "QuietLedger mobile dashboard"
+      "label": "OpenLedger mobile dashboard"
     }
   ]
 }

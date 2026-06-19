@@ -2,7 +2,7 @@
 
 ## Update Cadence
 
-QuietLedger does not follow a fixed release schedule. Releases are made when meaningful changes accumulate or a feature milestone is reached. See [VERSIONING.md](../VERSIONING.md) for version semantics.
+OpenLedger does not follow a fixed release schedule. Releases are made when meaningful changes accumulate or a feature milestone is reached. See [VERSIONING.md](../VERSIONING.md) for version semantics.
 
 ## Dependency Management
 

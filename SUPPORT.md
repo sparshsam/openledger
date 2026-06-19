@@ -1,6 +1,6 @@
 # Support
 
-QuietLedger is local-first finance records software. Support is best-effort and focused on reproducible bugs, documentation, local development, import/export behavior, and privacy concerns.
+OpenLedger is local-first finance records software. Support is best-effort and focused on reproducible bugs, documentation, local development, import/export behavior, and privacy concerns.
 
 ## Before Opening An Issue
 

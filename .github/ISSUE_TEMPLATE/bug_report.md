@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report something broken in QuietLedger
+about: Report something broken in OpenLedger
 labels: "type: bug,status: needs triage"
 ---
 
@@ -26,4 +26,4 @@ If applicable, add screenshots or browser console output.
 
 - Browser:
 - Device:
-- QuietLedger version/commit:
+- OpenLedger version/commit:

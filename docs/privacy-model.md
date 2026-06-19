@@ -4,7 +4,7 @@
 
 ## Summary
 
-QuietLedger is designed around local-first privacy:
+OpenLedger is designed around local-first privacy:
 
 - **All data stays in the browser.** Transactions, accounts, and settings are stored in `localStorage`.
 - **No server communication.** CSV parsing, JSON export, and data processing happen entirely client-side.

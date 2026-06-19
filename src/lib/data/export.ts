@@ -28,7 +28,7 @@ export function downloadLedgerExport(
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "quietledger-export.json";
+  anchor.download = "openledger-export.json";
   anchor.click();
   URL.revokeObjectURL(url);
 }
