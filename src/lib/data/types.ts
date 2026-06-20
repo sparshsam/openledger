@@ -82,6 +82,22 @@ export type LifeCostEvent = {
   kind: "income" | "large-expense" | "recurring";
 };
 
+export type Budget = {
+  id: string;
+  category: string;
+  month: string;
+  amount: number;
+};
+
+export type Goal = {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate?: string;
+  createdAt: string;
+};
+
 export type LedgerData = {
   accounts: Account[];
   transactions: Transaction[];
@@ -91,6 +107,8 @@ export type LedgerData = {
   memories: FinancialMemory[];
   forecastItems: ForecastItem[];
   lifeCostEvents: LifeCostEvent[];
+  budgets: Budget[];
+  goals: Goal[];
 };
 
 export type PersistedLedgerState = {
@@ -102,4 +120,6 @@ export type PersistedLedgerState = {
   memories: FinancialMemory[];
   forecastItems: ForecastItem[];
   importMetadata: ImportMetadata[];
+  budgets: Budget[];
+  goals: Goal[];
 };
