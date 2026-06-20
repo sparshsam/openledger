@@ -36,6 +36,8 @@ import {
 } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth, getAuthMode } from "@/lib/supabase/auth-hook";
+import { AuthPanel } from "@/components/auth-panel";
 import {
   buildImportPreview,
   guessMapping,
@@ -142,6 +144,8 @@ const csvFields: Array<{ field: CsvField; label: string; required?: boolean }> =
 ];
 
 export default function Home() {
+  const { user, profile, loading: authLoading } = useAuth();
+  const authMode = getAuthMode(user);
   const [activeNav, setActiveNav] = useState("Overview");
   const [selectedAccountId, setSelectedAccountId] = useState("chequing");
   const [selectedPatternId, setSelectedPatternId] = useState("delivery");
@@ -518,13 +522,16 @@ export default function Home() {
           </div>
 
           <div className="sidebar-lower">
-            <section className="local-panel" aria-label="Local data status">
+            <section className="local-panel" aria-label="Auth status">
               <div>
-                <span className="status-dot" />
-                <strong>{localOnly ? "Local only" : "Sync preview"}</strong>
+                <span className={`status-dot ${authMode === "signed-in" ? "online" : ""}`} />
+                <strong>{authMode === "signed-in" ? "Signed in" : "Guest mode"}</strong>
               </div>
-              <p>{localOnly ? "All data stored on this device" : "Supabase boundary is ready for later"}</p>
-              <button onClick={() => setLocalOnly((current) => !current)}>Change sync settings</button>
+              <p>
+                {authMode === "signed-in"
+                  ? profile?.email ?? user?.email ?? "Cloud-ready"
+                  : "No account needed. Data stays local."}
+              </p>
             </section>
 
             <div className="quiet-mode">
@@ -794,6 +801,19 @@ export default function Home() {
                 </button>
                 <input ref={jsonImportRef} type="file" accept=".json,application/json" onChange={handleJsonBackup} />
               </div>
+            </Panel>
+
+            <Panel
+              title={authMode === "signed-in" ? "Account" : "Sign in (optional)"}
+              className="auth-panel"
+              control={
+                <span className="privacy-chip">
+                  <ShieldCheck size={14} aria-hidden />
+                  {authMode === "signed-in" ? "Cloud-ready" : "Guest mode"}
+                </span>
+              }
+            >
+              <AuthPanel user={user} profile={profile} onSignOut={() => {}} />
             </Panel>
 
             <Panel

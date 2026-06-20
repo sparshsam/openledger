@@ -2,7 +2,17 @@
 
 All notable changes to OpenLedger will be documented here.
 
-## 0.1.1 — 2026-06-19
+## 0.2.0 — 2026-06-20
+
+- Added optional Supabase Auth foundation (email OTP + Google OAuth).
+- Added `openledger_profiles` table with RLS policies.
+- Enabled Row Level Security on all `openledger_*` tables.
+- Added Auth UI: sign-in panel with email OTP and Google OAuth buttons.
+- Added guest/signed-in mode indicator to sidebar.
+- Profile row auto-created on first sign-in.
+- GitHub repo renamed from quietledger to openledger.
+- App remains fully local-first. No auth wall, no mandatory account, no sync.
+- No automatic cloud sync or data migration introduced.
 
 - Renamed product from QuietLedger to OpenLedger.
 - Added Supabase backend foundation on shared Elora project.

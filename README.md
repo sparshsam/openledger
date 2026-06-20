@@ -3,7 +3,7 @@
 **Money without noise.**
 
 [![Live app](https://img.shields.io/badge/live-quietledger.vercel.app-88a874?style=flat-square)](https://quietledger.vercel.app)
-[![CI](https://img.shields.io/github/actions/workflow/status/sparshsam/quietledger/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/sparshsam/quietledger/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/sparshsam/quietledger/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/sparshsam/openledger/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f7d61?style=flat-square)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square)](https://www.typescriptlang.org)
@@ -29,7 +29,7 @@ It runs in the browser, stores the active ledger locally, supports CSV import an
 
 ## Current Status
 
-**Maturity:** Maintained. v0.1.1 — renamed from QuietLedger to OpenLedger; Supabase backend foundation added.
+**Maturity:** Maintained. v0.2.0 — optional auth foundation; guest mode remains default.
 
 OpenLedger is a **maintained early public MVP**. It is useful today as a browser-local ledger, but it is not a bank-connected finance platform and should not be treated as secure long-term storage for sensitive records.
 
@@ -43,11 +43,12 @@ What exists now:
 - PWA manifest and service worker shell.
 - Public Vercel deployment.
 - Supabase backend foundation with `openledger_` prefixed tables (shared Elora project).
+- Optional auth via email OTP or Google OAuth.
+- Guest mode remains default — no account required.
 
 What does not exist yet:
 
-- No hosted user accounts or auth (prepared future auth via Supabase).
-- No backend sync enabled yet (Supabase schema is ready and applied).
+- No backend sync enabled yet (Supabase schema and auth are ready, but sync is not wired).
 - No encryption-at-rest for local browser storage.
 - No bank login, Plaid, Flinks, brokerage, or aggregation connection.
 - No multi-device sync or conflict resolution.
@@ -102,7 +103,7 @@ Requirements:
 - npm
 
 ```bash
-git clone https://github.com/sparshsam/quietledger.git
+git clone https://github.com/sparshsam/openledger.git
 cd openledger
 npm install
 npm run dev
