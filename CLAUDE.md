@@ -5,7 +5,9 @@
 OpenLedger is a private, local-first finance tool for everyday budgeting and records.
 Built with Next.js + TypeScript. Formerly QuietLedger.
 
-Releases: v0.3.0 — Cloud Backup & Manual Sync (current)
+Releases: v0.5.0 — Budgets & Goals (current)
+           v0.4.0 — Dashboard & Financial Insights
+           v0.3.0 — Cloud Backup & Manual Sync
            v0.2.0 — Optional Auth Foundation
            v0.1.1 — Rename to OpenLedger + Supabase foundation
            v0.1.0 — Initial public MVP (as QuietLedger)
@@ -21,7 +23,7 @@ Releases: v0.3.0 — Cloud Backup & Manual Sync (current)
 - **Deployment:** Vercel → https://openledger-two.vercel.app
 - **GitHub:** https://github.com/sparshsam/openledger
 
-## Status — v0.3.0 (Cloud Backup & Manual Sync)
+## Status — v0.5.0 (Budgets & Goals)
 
 ### Current features
 - Guest mode (default) — no account required, full local functionality
@@ -33,6 +35,12 @@ Releases: v0.3.0 — Cloud Backup & Manual Sync (current)
 - Supabase Auth (email OTP, Google OAuth) — optional sign-in
 - Cloud Backup — signed-in users can manually back up and restore
 - RLS on all `openledger_*` tables — users can only access own data
+- Dashboard with financial summary cards, SVG charts (spending, income vs expenses, account distribution, monthly trend)
+- Transactions view with search, date range/account/category/type filters, sortable columns
+- Insights panel (largest expense, top category, month-over-month change, recurring detection, low balance alerts)
+- Monthly category budgets with create, edit, delete, progress bars, overspending warnings
+- Savings goals with target amounts, progress tracking, contribution support, target dates
+- Finance engine (totals, grouping, insights, trends, budgets, goals) with 50 unit tests
 
 ### What does NOT exist yet
 - No automatic cloud sync (must be manually triggered)
@@ -66,7 +74,7 @@ npx vercel deploy --prod  # Deploy to Vercel
 |------|---------|
 | `src/app/page.tsx` | Main dashboard (single-page app) |
 | `src/app/layout.tsx` | Root layout, metadata, manifest |
-| `src/app/globals.css` | All styles (~1500 lines) |
+| `src/app/globals.css` | All styles (~1900 lines) |
 | `src/middleware.ts` | Supabase SSR session middleware |
 | `src/app/auth/callback/route.ts` | OAuth/OTP callback handler |
 | `src/lib/supabase/client.ts` | Browser Supabase client |
@@ -78,6 +86,15 @@ npx vercel deploy --prod  # Deploy to Vercel
 | `src/components/cloud-backup-panel.tsx` | Cloud backup/restore UI |
 | `src/lib/data/persistence.ts` | localStorage persistence layer |
 | `src/lib/data/types.ts` | All TypeScript domain types |
+| `src/lib/finance/` | Finance engine (totals, grouping, insights, trends, budgets, goals) |
+| `src/lib/finance/__tests__/` | 50 unit tests across 7 test files |
+| `src/components/charts/` | SVG chart components (4 charts) |
+| `src/components/dashboard-summary.tsx` | Summary metric cards |
+| `src/components/insights-panel.tsx` | Financial insights display |
+| `src/components/transactions-view.tsx` | Searchable, filterable transaction table |
+| `src/components/budgets-panel.tsx` | Budget CRUD, progress bars, overspending |
+| `src/components/goals-panel.tsx` | Goal CRUD, progress tracking, contributions |
+| `src/components/empty-states.tsx` | Shared empty state components |
 | `supabase/migrations/` | SQL migrations (3 files) |
 
 ## Branch Naming
