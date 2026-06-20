@@ -96,6 +96,8 @@ export const ledgerData: LedgerData = {
     { id: "low-1", date: "May 11 - May 13", label: "Low-cash pressure window", amount: 0, kind: "pressure" },
     { id: "low-2", date: "May 26 - May 28", label: "Low-cash pressure window", amount: 0, kind: "pressure" },
   ],
+  budgets: [],
+  goals: [],
   lifeCostEvents: [
     { id: "bonus", month: "Dec 2025", label: "Year-end bonus", date: "Dec 24", kind: "income" },
     { id: "insurance-car", month: "Jan 2026", label: "Car insurance", date: "Jan 5", kind: "recurring" },

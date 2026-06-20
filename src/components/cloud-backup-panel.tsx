@@ -15,6 +15,8 @@ type Props = {
   ledgerData: {
     accounts: unknown[];
     transactions: unknown[];
+    budgets?: unknown[];
+    goals?: unknown[];
   };
   onRestore: (payload: BackupPayload) => void;
 };
@@ -51,8 +53,8 @@ export function CloudBackupPanel({ user, ledgerData, onRestore }: Props) {
       accounts: ledgerData.accounts,
       transactions: ledgerData.transactions,
       categories: [],
-      budgets: [],
-      goals: [],
+      budgets: ledgerData.budgets ?? [],
+      goals: ledgerData.goals ?? [],
     };
 
     const result = await uploadBackup(payload);
@@ -141,6 +143,8 @@ export function CloudBackupPanel({ user, ledgerData, onRestore }: Props) {
           <ul>
             <li>{preview.accounts.length} accounts</li>
             <li>{preview.transactions.length} transactions</li>
+            <li>{preview.budgets?.length ?? 0} budgets</li>
+            <li>{preview.goals?.length ?? 0} goals</li>
           </ul>
           <div className="confirm-actions">
             <button className="backup-btn" onClick={handleConfirmRestore}>

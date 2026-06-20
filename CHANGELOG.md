@@ -2,6 +2,16 @@
 
 All notable changes to OpenLedger will be documented here.
 
+## 0.5.0 — 2026-06-19
+
+- Added monthly category budgets with create, edit, delete, progress bars, and overspending warnings.
+- Added savings goals with target amounts, progress tracking, contribution support, and optional target dates.
+- Added dashboard widgets for budget summary, over-budget categories, goal progress, and upcoming goal dates.
+- Updated cloud backup to include budgets and goals in payload and restore preview.
+- Added budget and goal finance helpers (budget utilization, remaining budget, overspending detection, goal progress) with 13 new unit tests.
+- Added empty states for budgets and goals sections.
+- All computations are local derivations from in-memory state. No changes to persistence schema version, auth, or storage keys.
+
 ## 0.4.0 — 2026-06-19
 
 - Redesigned dashboard with financial summary cards (income, expenses, net cash flow, net worth).

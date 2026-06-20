@@ -59,16 +59,20 @@ import {
   saveLedgerState,
 } from "@/lib/data/persistence";
 import { ledgerData } from "@/lib/data/seed";
-import type { Account, AccountKind, CategoryPattern, ImportMetadata, LifeCostEvent, MonthlySnapshot, Transaction } from "@/lib/data/types";
+import type { Account, AccountKind, Budget, CategoryPattern, Goal, ImportMetadata, LifeCostEvent, MonthlySnapshot, Transaction } from "@/lib/data/types";
 import { PwaRegister } from "@/components/pwa-register";
 import { SpendingByCategoryChart, IncomeVsExpensesChart, AccountBalancesChart, MonthlyTrendChart } from "@/components/charts";
 import { DashboardSummary } from "@/components/dashboard-summary";
 import { InsightsPanel } from "@/components/insights-panel";
 import { TransactionsView } from "@/components/transactions-view";
 import { GuestModeGuidance, CloudBackupGuidance, NoChartData } from "@/components/empty-states";
+import { BudgetsPanel } from "@/components/budgets-panel";
+import { GoalsPanel } from "@/components/goals-panel";
 import { categoryTotals } from "@/lib/finance/grouping";
 import { monthlyTrend } from "@/lib/finance/trends";
 import { accountEffectiveBalance } from "@/lib/finance/totals";
+import { budgetUtilization, remainingBudget, isOverBudget } from "@/lib/finance/budgets";
+import { goalProgress } from "@/lib/finance/goals";
 
 const currency = new Intl.NumberFormat("en-CA", {
   style: "currency",
@@ -80,6 +84,8 @@ const navItems = [
   { label: "Overview", icon: Archive },
   { label: "Accounts", icon: WalletCards },
   { label: "Transactions", icon: ReceiptText },
+  { label: "Budgets", icon: PiggyBank },
+  { label: "Goals", icon: Sparkles },
   { label: "Memory", icon: Archive },
   { label: "Forecast", icon: Cloud },
   { label: "Settings", icon: Settings },
@@ -169,6 +175,8 @@ export default function Home() {
   const [memories, setMemories] = useState(ledgerData.memories);
   const [forecastItems, setForecastItems] = useState(ledgerData.forecastItems);
   const [importMetadata, setImportMetadata] = useState<ImportMetadata[]>([]);
+  const [budgets, setBudgets] = useState(ledgerData.budgets);
+  const [goals, setGoals] = useState(ledgerData.goals);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [storageNotice, setStorageNotice] = useState("Loading local ledger...");
   const [hydrated, setHydrated] = useState(false);
@@ -215,7 +223,7 @@ export default function Home() {
     () => accounts.map((a) => ({ ...a, balance: accountEffectiveBalance(a, transactions) })),
     [accounts, transactions],
   );
-  const currentLedgerData = { ...ledgerData, accounts, transactions, monthlySnapshots, memories, forecastItems, importMetadata };
+  const currentLedgerData = { ...ledgerData, accounts, transactions, monthlySnapshots, memories, forecastItems, importMetadata, budgets, goals };
   const activeAccounts = accounts.filter((account) => !account.archivedAt);
   const accountsWithBalances = useMemo(
     () =>
@@ -294,11 +302,13 @@ export default function Home() {
       memories,
       forecastItems,
       importMetadata,
+      budgets,
+      goals,
     });
     setLastSavedAt(saved.savedAt);
     setStorageNotice(nextSaveNoticeRef.current ?? "Local ledger saved.");
     nextSaveNoticeRef.current = null;
-  }, [accounts, forecastItems, hydrated, importMetadata, memories, monthlySnapshots, transactions]);
+  }, [accounts, budgets, forecastItems, goals, hydrated, importMetadata, memories, monthlySnapshots, transactions]);
 
   function applyLedgerState(state: ReturnType<typeof createDemoLedgerState>) {
     setAccounts(state.accounts);
@@ -307,6 +317,8 @@ export default function Home() {
     setMemories(state.memories);
     setForecastItems(state.forecastItems);
     setImportMetadata(state.importMetadata);
+    setBudgets(state.budgets);
+    setGoals(state.goals);
     setSelectedAccountId(state.accounts[0]?.id ?? "chequing");
     setSelectedMonth(state.monthlySnapshots[0]?.month ?? "2026-05");
     setSelectedMemoryId(state.memories[0]?.id ?? "feb-2026");
@@ -391,11 +403,12 @@ export default function Home() {
     setStorageNotice("Local browser data cleared. Demo fallback is showing.");
   }
 
-  function handleRestoreFromCloud(payload: { accounts: unknown[]; transactions: unknown[] }) {
+  function handleRestoreFromCloud(payload: { accounts: unknown[]; transactions: unknown[]; budgets?: unknown[]; goals?: unknown[] }) {
     if (!window.confirm("Replace local ledger with cloud backup? Current local changes will be lost.")) return;
-    // Apply cloud data to local state
     if (payload.accounts.length > 0) setAccounts(payload.accounts as typeof ledgerData.accounts);
     if (payload.transactions.length > 0) setTransactions(payload.transactions as typeof ledgerData.transactions);
+    if (payload.budgets && payload.budgets.length > 0) setBudgets(payload.budgets as typeof ledgerData.budgets);
+    if (payload.goals && payload.goals.length > 0) setGoals(payload.goals as typeof ledgerData.goals);
     skipNextSaveCountRef.current = 1;
     nextSaveNoticeRef.current = "Local data restored from cloud backup.";
   }
@@ -517,6 +530,43 @@ export default function Home() {
       current.map((item) => (item.id === account.id ? { ...item, archivedAt: new Date().toISOString() } : item)),
     );
     if (selectedAccountId === account.id) setSelectedAccountId(activeAccounts.find((item) => item.id !== account.id)?.id ?? "chequing");
+  }
+
+  function saveBudget(budget: Budget) {
+    nextSaveNoticeRef.current = "Budget saved locally.";
+    setBudgets((current) =>
+      budget.id && current.some((b) => b.id === budget.id)
+        ? current.map((b) => (b.id === budget.id ? budget : b))
+        : [...current, budget],
+    );
+  }
+
+  function deleteBudget(id: string) {
+    if (!window.confirm("Delete this budget?")) return;
+    nextSaveNoticeRef.current = "Budget deleted locally.";
+    setBudgets((current) => current.filter((b) => b.id !== id));
+  }
+
+  function saveGoal(goal: Goal) {
+    nextSaveNoticeRef.current = "Goal saved locally.";
+    setGoals((current) =>
+      goal.id && current.some((g) => g.id === goal.id)
+        ? current.map((g) => (g.id === goal.id ? goal : g))
+        : [...current, goal],
+    );
+  }
+
+  function deleteGoal(id: string) {
+    if (!window.confirm("Delete this goal?")) return;
+    nextSaveNoticeRef.current = "Goal deleted locally.";
+    setGoals((current) => current.filter((g) => g.id !== id));
+  }
+
+  function contributeToGoal(id: string, amount: number) {
+    nextSaveNoticeRef.current = "Goal contribution added.";
+    setGoals((current) =>
+      current.map((g) => (g.id === id ? { ...g, currentAmount: g.currentAmount + amount } : g)),
+    );
   }
 
   return (
@@ -657,12 +707,66 @@ export default function Home() {
                   <InsightsPanel accounts={accounts} transactions={transactions} />
                 </section>
 
+                {budgets.length > 0 ? (
+                  <section className="dashboard-section chart-section">
+                    <h2 className="section-title">Budget Overview — {new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric" }).format(new Date())}</h2>
+                    <div className="budget-dashboard-summary">
+                      {budgets.filter((b) => b.month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`).map((b) => {
+                        const util = budgetUtilization(b, transactions);
+                        const remaining = remainingBudget(b, transactions);
+                        const over = isOverBudget(b, transactions);
+                        return (
+                          <div key={b.id} className={`budget-mini ${over ? "over-budget" : ""}`}>
+                            <div className="budget-mini-header">
+                              <strong>{b.category}</strong>
+                              <span className={over ? "negative" : "positive"}>{remaining >= 0 ? `$${remaining.toFixed(0)} left` : `$${Math.abs(remaining).toFixed(0)} over`}</span>
+                            </div>
+                            <div className="budget-bar-track">
+                              <div className={`budget-bar-fill ${over ? "budget-bar-over" : util > 80 ? "budget-bar-warn" : "budget-bar-ok"}`} style={{ width: `${util}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
+
+                {goals.length > 0 ? (
+                  <section className="dashboard-section chart-section">
+                    <h2 className="section-title">Goal Progress</h2>
+                    <div className="goal-dashboard-list">
+                      {goals.slice(0, 5).map((g) => {
+                        const progress = goalProgress(g);
+                        return (
+                          <div key={g.id} className="budget-mini">
+                            <div className="budget-mini-header">
+                              <strong>{g.name}</strong>
+                              <span>{progress}%</span>
+                            </div>
+                            <div className="budget-bar-track">
+                              <div className={`budget-bar-fill ${progress >= 100 ? "budget-bar-ok" : "budget-bar-warn"}`} style={{ width: `${progress}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
+
                 <section className="dashboard-section transactions-section-wide">
                   <h2 className="section-title">Transactions</h2>
                   <TransactionsView transactions={transactions} accounts={accounts} />
                 </section>
                 {authMode === "signed-in" ? <CloudBackupGuidance /> : null}
               </div>
+            ) : activeNav === "Budgets" ? (
+              <Panel title="Budgets" className="budgets-panel-section">
+                <BudgetsPanel budgets={budgets} transactions={transactions} onSave={saveBudget} onDelete={deleteBudget} />
+              </Panel>
+            ) : activeNav === "Goals" ? (
+              <Panel title="Goals" className="goals-panel-section">
+                <GoalsPanel goals={goals} onSave={saveGoal} onDelete={deleteGoal} onContribute={contributeToGoal} />
+              </Panel>
             ) : (
               <>
             <Panel className="accounts-panel" title="Accounts" action="View all accounts">
@@ -911,7 +1015,7 @@ export default function Home() {
               >
                 <CloudBackupPanel
                   user={user}
-                  ledgerData={{ accounts, transactions }}
+                  ledgerData={{ accounts, transactions, budgets, goals }}
                   onRestore={handleRestoreFromCloud}
                 />
               </Panel>

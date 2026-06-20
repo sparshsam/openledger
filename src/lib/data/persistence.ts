@@ -18,6 +18,8 @@ export function createDemoLedgerState(): PersistedLedgerState {
     memories: ledgerData.memories,
     forecastItems: ledgerData.forecastItems,
     importMetadata: ledgerData.importMetadata ?? [],
+    budgets: ledgerData.budgets ?? [],
+    goals: ledgerData.goals ?? [],
   };
 }
 
@@ -73,6 +75,8 @@ export function normalizeLedgerBackup(value: unknown, source: "saved" | "backup"
   const rawMemories = Array.isArray(value.memories) ? value.memories : demo.memories;
   const rawForecast = Array.isArray(value.forecastItems) ? value.forecastItems : demo.forecastItems;
   const rawMetadata = Array.isArray(value.importMetadata) ? value.importMetadata : [];
+  const rawBudgets = Array.isArray(value.budgets) ? value.budgets : [];
+  const rawGoals = Array.isArray(value.goals) ? value.goals : [];
 
   const validAccounts = rawAccounts
     .filter(isRecord)
@@ -99,6 +103,12 @@ export function normalizeLedgerBackup(value: unknown, source: "saved" | "backup"
   const validMetadata = rawMetadata
     .filter(isRecord)
     .filter((m) => typeof m.id === "string" && typeof m.fileName === "string");
+  const validBudgets = rawBudgets
+    .filter(isRecord)
+    .filter((b) => typeof b.id === "string" && typeof b.category === "string" && typeof b.month === "string" && typeof b.amount === "number");
+  const validGoals = rawGoals
+    .filter(isRecord)
+    .filter((g) => typeof g.id === "string" && typeof g.name === "string" && typeof g.targetAmount === "number" && typeof g.currentAmount === "number");
 
   const state: PersistedLedgerState = {
     schemaVersion: LEDGER_SCHEMA_VERSION,
@@ -111,6 +121,8 @@ export function normalizeLedgerBackup(value: unknown, source: "saved" | "backup"
     memories: validMemories.length > 0 ? (validMemories as PersistedLedgerState["memories"]) : demo.memories,
     forecastItems: validForecast.length > 0 ? (validForecast as PersistedLedgerState["forecastItems"]) : demo.forecastItems,
     importMetadata: validMetadata.length > 0 ? (validMetadata as PersistedLedgerState["importMetadata"]) : [],
+    budgets: validBudgets.length > 0 ? (validBudgets as PersistedLedgerState["budgets"]) : [],
+    goals: validGoals.length > 0 ? (validGoals as PersistedLedgerState["goals"]) : [],
   };
 
   const filteredCount =
@@ -119,13 +131,17 @@ export function normalizeLedgerBackup(value: unknown, source: "saved" | "backup"
     rawSnapshots.length +
     rawMemories.length +
     rawForecast.length +
-    rawMetadata.length -
+    rawMetadata.length +
+    rawBudgets.length +
+    rawGoals.length -
     (validAccounts.length +
       validTransactions.length +
       validSnapshots.length +
       validMemories.length +
       validForecast.length +
-      validMetadata.length);
+      validMetadata.length +
+      validBudgets.length +
+      validGoals.length);
 
   const warning =
     filteredCount > 0
