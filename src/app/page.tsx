@@ -618,6 +618,7 @@ export default function Home() {
           <div className="dashboard-grid">
             {activeNav === "Dashboard" ? (
               <div className="dashboard-page">
+                <GuestModeGuidance />
                 <section className="dashboard-section">
                   <h2 className="section-title">Financial Summary</h2>
                   <DashboardSummary accounts={accounts} transactions={transactions} />
@@ -660,6 +661,7 @@ export default function Home() {
                   <h2 className="section-title">Transactions</h2>
                   <TransactionsView transactions={transactions} accounts={accounts} />
                 </section>
+                {authMode === "signed-in" ? <CloudBackupGuidance /> : null}
               </div>
             ) : (
               <>
