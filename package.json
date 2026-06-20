@@ -1,16 +1,16 @@
 {
   "name": "openledger",
-  "version": "0.1.1",
-  "description": "A private, local-first personal finance ledger for calm CSV-based tracking. Formerly QuietLedger.",
+  "version": "0.2.0",
+  "description": "A private, local-first personal finance ledger for calm CSV-based tracking.",
   "private": true,
   "license": "AGPL-3.0-or-later",
   "homepage": "https://quietledger.vercel.app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sparshsam/quietledger.git"
+    "url": "git+https://github.com/sparshsam/openledger.git"
   },
   "bugs": {
-    "url": "https://github.com/sparshsam/quietledger/issues"
+    "url": "https://github.com/sparshsam/openledger/issues"
   },
   "engines": {
     "node": ">=20.11"

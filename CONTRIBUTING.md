@@ -5,7 +5,7 @@ Thanks for considering a contribution. OpenLedger is intentionally small, calm, 
 ## Local Setup
 
 ```bash
-git clone https://github.com/sparshsam/quietledger.git
+git clone https://github.com/sparshsam/openledger.git
 cd openledger
 npm install
 npm run dev

@@ -61,9 +61,35 @@ All tables include `user_id` columns (nullable — reserved for future auth), `c
 
 ### Current Status
 
-The schema is applied and ready, but the app does not use it yet. The current release is entirely local-first — all data stays in the browser. Sync remains opt-in and will be enabled in a future release.
+The schema is applied and ready. v0.2.0 added optional auth (email OTP + Google OAuth) and a profile creation flow. The app continues to work fully without logging in — guest mode remains the default. Sync is not enabled yet and will be introduced in a future release.
 
-## Screenshot Checklist
+### Auth (v0.2.0)
+
+- Auth is optional. Guest mode is the default.
+- Email OTP: user enters their email, receives a sign-in link, clicks it, and is authenticated.
+- Google OAuth: if configured in the Supabase project, the Google sign-in button redirects through the OAuth flow.
+- On first sign-in, an `openledger_profiles` row is auto-created with `display_name`, `email`, and `avatar_url`.
+- Auth state is managed client-side via `useAuth()` hook (`src/lib/supabase/auth-hook.ts`).
+- Session is persisted via cookies (managed by `@supabase/ssr` middleware).
+- Sign-out clears the session and returns to guest mode.
+
+### RLS Policies
+
+All `openledger_*` tables have Row Level Security enabled:
+- **openledger_profiles**: users can select/insert/update only their own profile.
+- **openledger_accounts**, **transactions**, **budgets**, **goals**, **imports**: full CRUD scoped to `auth.uid()` = `user_id`.
+- **openledger_audit_events**: users can view and insert their own events.
+- **openledger_categories**: public read, authenticated insert/update.
+
+All `user_id` columns are nullable, preserving backward compatibility with local data that has no user ownership.
+
+### Client Files
+
+- **Browser client** (`src/lib/supabase/client.ts`) — uses `@supabase/ssr` with the anon key. Safe for client-side use.
+- **Server client** (`src/lib/supabase/server.ts`) — uses `@supabase/ssr` with cookie-based auth for Next.js server components and API routes.
+- **Admin client** (`src/lib/supabase/admin.ts`) — uses `SUPABASE_SERVICE_ROLE_KEY`. SERVER-ONLY. Never imported in client code.
+- **Auth hook** (`src/lib/supabase/auth-hook.ts`) — React hook providing `user`, `session`, `profile`, and `loading` state.
+- **Auth panel** (`src/components/auth-panel.tsx`) — UI component for sign-in, sign-out, and profile display.
 
 - Desktop dashboard at `1440x1000`
 - Mobile dashboard at `390x900`
