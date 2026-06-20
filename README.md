@@ -1,4 +1,4 @@
-# QuietLedger
+# OpenLedger
 
 **Money without noise.**
 
@@ -8,13 +8,13 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square)](https://www.typescriptlang.org)
 
-QuietLedger is a calm, local-first personal finance ledger for people who want to understand their money without connecting bank accounts, feeding a brokerage funnel, or being shamed by a dashboard.
+OpenLedger is a calm, local-first personal finance ledger for people who want to understand their money without connecting bank accounts, feeding a brokerage funnel, or being shamed by a dashboard.
 
 It runs in the browser, stores the active ledger locally, supports CSV import and JSON backups, and keeps the product surface quiet: accounts, monthly snapshots, manual entries, transaction history, financial memory, and upcoming obligations.
 
 **Live app:** [https://quietledger.vercel.app](https://quietledger.vercel.app)
 
-![QuietLedger dashboard](assets/screenshot-main.png)
+![OpenLedger dashboard](assets/screenshot-main.png)
 
 ## Quick Links
 
@@ -29,9 +29,9 @@ It runs in the browser, stores the active ledger locally, supports CSV import an
 
 ## Current Status
 
-**Maturity:** Maintained. v0.1.0 — early public MVP with active development. Releases, changelog, and issue tracking are active.
+**Maturity:** Maintained. v0.1.1 — renamed from QuietLedger to OpenLedger; Supabase backend foundation added.
 
-QuietLedger is a **maintained early public MVP**. It is useful today as a browser-local ledger, but it is not a bank-connected finance platform and should not be treated as secure long-term storage for sensitive records.
+OpenLedger is a **maintained early public MVP**. It is useful today as a browser-local ledger, but it is not a bank-connected finance platform and should not be treated as secure long-term storage for sensitive records.
 
 What exists now:
 
@@ -42,11 +42,12 @@ What exists now:
 - JSON export/import for backups and recovery.
 - PWA manifest and service worker shell.
 - Public Vercel deployment.
+- Supabase backend foundation with `openledger_` prefixed tables (shared Elora project).
 
 What does not exist yet:
 
-- No hosted user accounts or auth.
-- No backend database.
+- No hosted user accounts or auth (prepared future auth via Supabase).
+- No backend sync enabled yet (Supabase schema is ready and applied).
 - No encryption-at-rest for local browser storage.
 - No bank login, Plaid, Flinks, brokerage, or aggregation connection.
 - No multi-device sync or conflict resolution.
@@ -56,7 +57,7 @@ What does not exist yet:
 
 | Overview | Filtered insight/search state |
 | --- | --- |
-| ![QuietLedger overview](assets/screenshot-main.png) | ![QuietLedger filtered insight state](assets/screenshot-search.png) |
+| ![OpenLedger overview](assets/screenshot-main.png) | ![OpenLedger filtered insight state](assets/screenshot-search.png) |
 
 ## Features
 
@@ -74,7 +75,7 @@ What does not exist yet:
 
 ## Privacy Model
 
-QuietLedger is intentionally local-first in its current form:
+OpenLedger is intentionally local-first in its current form:
 
 - Ledger data is stored in the browser using `localStorage`.
 - CSV parsing happens locally in the browser.
@@ -102,7 +103,7 @@ Requirements:
 
 ```bash
 git clone https://github.com/sparshsam/quietledger.git
-cd quietledger
+cd openledger
 npm install
 npm run dev
 ```
@@ -122,7 +123,7 @@ The production server uses Next.js. For Vercel deployment, the default Next.js p
 
 ## CSV Import
 
-QuietLedger starts with CSV instead of bank aggregation because CSV keeps the user in control. Export from your bank, inspect the file, import locally, and back up the ledger as JSON.
+OpenLedger starts with CSV instead of bank aggregation because CSV keeps the user in control. Export from your bank, inspect the file, import locally, and back up the ledger as JSON.
 
 Supported mapping targets:
 
@@ -154,7 +155,7 @@ Posted Date,Transaction Description,Debit/Credit,Transaction Amount,Account Name
 
 ## Backups
 
-Use **Export JSON** after meaningful edits or imports. Use **Import JSON backup** to restore a previously exported QuietLedger ledger.
+Use **Export JSON** after meaningful edits or imports. Use **Import JSON backup** to restore a previously exported OpenLedger ledger.
 
 The backup format currently includes:
 
@@ -170,7 +171,7 @@ The backup format currently includes:
 
 ## Deployment
 
-QuietLedger is deployed on Vercel:
+OpenLedger is deployed on Vercel:
 
 [https://quietledger.vercel.app](https://quietledger.vercel.app)
 
@@ -188,7 +189,7 @@ npx vercel --prod
 
 ## Roadmap
 
-QuietLedger should remain a personal ledger, not a financial product funnel. The roadmap expands clarity, portability, and privacy without adding bank surveillance, brokerage prompts, or shame-based finance dashboards.
+OpenLedger should remain a personal ledger, not a financial product funnel. The roadmap expands clarity, portability, and privacy without adding bank surveillance, brokerage prompts, or shame-based finance dashboards.
 
 ### Near-Term
 
@@ -214,7 +215,7 @@ QuietLedger should remain a personal ledger, not a financial product funnel. The
 
 - **Self-hosted sync option** — optional Supabase/Postgres sync for users who want multi-device access while controlling their own infrastructure.
 - **End-to-end encrypted sync research** — explore sync designs where hosted infrastructure cannot read ledger contents.
-- **Desktop wrapper** — package QuietLedger as a local desktop app for people who prefer filesystem-backed records.
+- **Desktop wrapper** — package OpenLedger as a local desktop app for people who prefer filesystem-backed records.
 - **Portable finance archive** — durable export format for accounts, transactions, snapshots, rules, notes, and forecast items.
 - **Open ledger schema** — a documented, app-agnostic schema that other personal finance tools can import or export.
 - **Household mode** — shared ledgers for families/roommates with careful permission boundaries.
@@ -245,7 +246,7 @@ Base, if used, should be a quiet notary for hashes. The ledger itself stays priv
 
 ## Future Philosophy
 
-QuietLedger belongs to a broader family of calm tools around ownership, proof, privacy, and restraint.
+OpenLedger belongs to a broader family of calm tools around ownership, proof, privacy, and restraint.
 
 The direction is:
 
@@ -256,7 +257,7 @@ The direction is:
 - **Local-first before cloud sync** — useful offline first, optional infrastructure later.
 - **Base as infrastructure, not speculation** — verification only, never a reason to financialize the app.
 
-QuietLedger should feel less like a finance casino and more like a small wooden desk with a clean notebook, a lamp, and no one peeking over your shoulder. 🕯️
+OpenLedger should feel less like a finance casino and more like a small wooden desk with a clean notebook, a lamp, and no one peeking over your shoulder. 🕯️
 
 ## Contributing
 
@@ -275,7 +276,7 @@ Before opening a pull request, please read [CONTRIBUTING.md](CONTRIBUTING.md). F
 
 ## License
 
-QuietLedger is licensed under **AGPL-3.0-or-later**. See [LICENSE](LICENSE).
+OpenLedger is licensed under **AGPL-3.0-or-later**. See [LICENSE](LICENSE).
 
 This matters for hosted or network-accessible modifications: the AGPL is intentionally stronger than a permissive license. If you run a modified version for others over a network, you need to provide the corresponding source under the AGPL terms.
 

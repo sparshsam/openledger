@@ -348,14 +348,14 @@ export default function Home() {
   }
 
   function resetToDemoData() {
-    if (!window.confirm("Reset QuietLedger to the demo ledger? Your local imported transactions will be replaced.")) return;
+    if (!window.confirm("Reset OpenLedger to the demo ledger? Your local imported transactions will be replaced.")) return;
     skipNextSaveCountRef.current = 2;
     nextSaveNoticeRef.current = "Demo ledger restored and saved locally.";
     applyLedgerState(createDemoLedgerState());
   }
 
   function clearLocalData() {
-    if (!window.confirm("Clear saved local QuietLedger data from this browser? Export a backup first if you need it.")) return;
+    if (!window.confirm("Clear saved local OpenLedger data from this browser? Export a backup first if you need it.")) return;
     clearLedgerState(window.localStorage);
     skipNextSaveCountRef.current = 2;
     applyLedgerState(createDemoLedgerState());
@@ -498,7 +498,7 @@ export default function Home() {
                 <FileText size={18} aria-hidden />
               </div>
               <div>
-                <p>QuietLedger</p>
+                <p>OpenLedger</p>
                 <span>Money without noise.</span>
               </div>
             </div>
@@ -770,7 +770,7 @@ export default function Home() {
               <div className="data-copy">
                 <strong>{storageNotice}</strong>
                 <p>
-                  QuietLedger stores this ledger in your browser with no bank login, no backend, and no server sync.
+                  OpenLedger stores this ledger in your browser with no bank login, no backend, and no server sync.
                   Export backups before clearing browser data or changing devices.
                 </p>
                 <span>Last saved: {lastSavedAt ? formatDateTime(lastSavedAt) : "Not saved in this browser yet"}</span>

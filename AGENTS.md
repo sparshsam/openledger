@@ -1,8 +1,8 @@
-# QuietLedger — AI Agent Instructions
+# OpenLedger — AI Agent Instructions
 
 ## Product Identity
 
-QuietLedger is a private, local-first finance tool. This is NOT a fintech platform — it is a personal budgeting application with no backend, no accounts, and no cloud dependency.
+OpenLedger is a private, local-first finance tool. This is NOT a fintech platform — it is a personal budgeting application with no backend, no accounts, and no cloud dependency.
 
 ## Rules
 

@@ -1,4 +1,4 @@
-# QuietLedger — Roadmap
+# OpenLedger — Roadmap
 
 > Private, local-first finance tooling for everyday budgeting and records.
 

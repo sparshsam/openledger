@@ -1,7 +1,7 @@
 import { ledgerData } from "./seed";
 import type { PersistedLedgerState } from "./types";
 
-export const LEDGER_STORAGE_KEY = "quietledger.localLedger.v1";
+export const LEDGER_STORAGE_KEY = "openledger.localLedger.v1";
 export const LEDGER_SCHEMA_VERSION = 1;
 
 export type LoadLedgerResult =

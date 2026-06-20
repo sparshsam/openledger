@@ -1,12 +1,12 @@
-# Contributing To QuietLedger
+# Contributing To OpenLedger
 
-Thanks for considering a contribution. QuietLedger is intentionally small, calm, and privacy-first. Changes should make the app more trustworthy, understandable, and maintainable without turning it into a bank-connected growth product.
+Thanks for considering a contribution. OpenLedger is intentionally small, calm, and privacy-first. Changes should make the app more trustworthy, understandable, and maintainable without turning it into a bank-connected growth product.
 
 ## Local Setup
 
 ```bash
 git clone https://github.com/sparshsam/quietledger.git
-cd quietledger
+cd openledger
 npm install
 npm run dev
 ```

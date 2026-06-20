@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: >-
-  If you use QuietLedger in research or publications, please cite
+  If you use OpenLedger in research or publications, please cite
   this repository.
-title: QuietLedger
+title: OpenLedger
 abstract: >-
   A private, self-hostable personal finance tracker for calmly
   understanding where your life energy is going. Local-first MVP

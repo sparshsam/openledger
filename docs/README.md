@@ -1,4 +1,4 @@
-# QuietLedger Documentation
+# OpenLedger Documentation
 
 ## Contents
 

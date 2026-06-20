@@ -1,6 +1,6 @@
 # Security Policy
 
-QuietLedger is an early local-first MVP. It currently has no backend, no hosted user accounts, and no bank connection.
+OpenLedger is an early local-first MVP. It currently has no backend, no hosted user accounts, and no bank connection.
 
 ## Supported Version
 
@@ -9,7 +9,7 @@ Only the `main` branch is currently maintained.
 ## Current Security Model
 
 - Ledger data is stored in browser `localStorage`.
-- Local data is not encrypted by QuietLedger.
+- Local data is not encrypted by OpenLedger.
 - CSV import and JSON backup restore run in the browser.
 - No bank credentials are requested or stored.
 - No server-side sync is connected.
@@ -38,4 +38,4 @@ Include:
 - Browser or extension compromise
 - User device compromise
 - Lost browser profile or cleared site data
-- Bank CSV export errors outside QuietLedger's parser
+- Bank CSV export errors outside OpenLedger's parser

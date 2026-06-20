@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement for QuietLedger
+about: Suggest an improvement for OpenLedger
 labels: "type: feature,status: needs triage"
 ---
 
@@ -10,7 +10,7 @@ What limitation or gap are you encountering?
 
 ## Proposed solution
 
-How would you like QuietLedger to behave?
+How would you like OpenLedger to behave?
 
 ## Alternatives considered
 

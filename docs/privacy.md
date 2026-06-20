@@ -1,6 +1,6 @@
 # Privacy Model
 
-QuietLedger is designed around local-first privacy in its current MVP:
+OpenLedger is designed around local-first privacy in its current MVP:
 
 ## Current MVP
 

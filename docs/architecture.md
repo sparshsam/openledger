@@ -1,6 +1,6 @@
-# QuietLedger Architecture Notes
+# OpenLedger Architecture Notes
 
-QuietLedger is currently a browser-local Next.js app. The app has no auth layer, no backend connection, and no bank aggregation integration.
+OpenLedger is currently a browser-local Next.js app. The app has no auth layer, no backend connection, and no bank aggregation integration.
 
 ## Data Boundary
 
@@ -13,11 +13,11 @@ Manual transaction entry, CSV import, and account management all write into the 
 Local persistence lives in `src/lib/data/persistence.ts`.
 
 - Storage: `localStorage`
-- Key: `quietledger.localLedger.v1`
+- Key: `openledger.localLedger.v1`
 - Schema: `schemaVersion: 1`
 - Saved fields: accounts, transactions, monthly snapshots, memories, forecast items, and import metadata
 
-On startup, QuietLedger attempts to load the saved local ledger. If the saved data is missing, unreadable, or too new for the current app, the demo ledger is loaded safely. Every local state change writes a fresh `savedAt` timestamp.
+On startup, OpenLedger attempts to load the saved local ledger. If the saved data is missing, unreadable, or too new for the current app, the demo ledger is loaded safely. Every local state change writes a fresh `savedAt` timestamp.
 
 Account records carry starting balances. Display balances are calculated as starting balance plus local CSV/manual transactions for that account. Archived accounts remain in storage and JSON export, but are hidden from active account selectors and the main account list.
 
@@ -31,9 +31,37 @@ Users should export backups before clearing browser data, switching browsers, or
 
 ## Privacy Model
 
-CSV parsing and JSON backup restore run in the browser. QuietLedger does not request bank credentials, does not connect to a server, and does not sync transaction data in the current local mode.
+CSV parsing and JSON backup restore run in the browser. OpenLedger does not request bank credentials, does not connect to a server, and does not sync transaction data in the current local mode.
 
 Future sync should remain opt-in and self-hostable. Supabase/Postgres can replace the persistence boundary later without changing the dashboard's core data shape.
+
+## Supabase Foundation (v0.1.1)
+
+A Supabase backend schema has been prepared on the shared Elora Supabase project for optional future sync. All OpenLedger tables use the `openledger_` prefix to namespace them within the shared project.
+
+### Tables
+
+| Table | Purpose |
+|-------|---------|
+| `openledger_accounts` | Account records matching the local `Account` type |
+| `openledger_transactions` | Transaction records matching the local `Transaction` type |
+| `openledger_categories` | Pre-seeded default categories (Groceries, Rent, Income, etc.) |
+| `openledger_budgets` | Monthly budget envelopes per category |
+| `openledger_goals` | Savings goals with target amounts and deadlines |
+| `openledger_imports` | CSV import history metadata |
+| `openledger_audit_events` | Immutable event log for created/updated/deleted records |
+
+All tables include `user_id` columns (nullable — reserved for future auth), `created_at`/`updated_at` timestamps, and auto-updating triggers on `updated_at`.
+
+### Client Setup
+
+- **Browser client** (`src/lib/supabase/client.ts`) — uses `@supabase/ssr` with the anon key. Safe for client-side use.
+- **Server client** (`src/lib/supabase/server.ts`) — uses `@supabase/ssr` with cookie-based auth for Next.js server components and API routes.
+- **Admin client** (`src/lib/supabase/admin.ts`) — uses `SUPABASE_SERVICE_ROLE_KEY`. SERVER-ONLY. Never imported in client code.
+
+### Current Status
+
+The schema is applied and ready, but the app does not use it yet. The current release is entirely local-first — all data stays in the browser. Sync remains opt-in and will be enabled in a future release.
 
 ## Screenshot Checklist
 

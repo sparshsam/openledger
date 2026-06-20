@@ -1,7 +1,7 @@
 {
-  "name": "quietledger",
-  "version": "0.1.0",
-  "description": "A private, local-first personal finance ledger for calm CSV-based tracking.",
+  "name": "openledger",
+  "version": "0.1.1",
+  "description": "A private, local-first personal finance ledger for calm CSV-based tracking. Formerly QuietLedger.",
   "private": true,
   "license": "AGPL-3.0-or-later",
   "homepage": "https://quietledger.vercel.app",
@@ -31,6 +31,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
     "lucide-react": "^1.17.0",
     "next": "16.2.6",
     "react": "19.2.6",

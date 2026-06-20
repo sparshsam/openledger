@@ -1,4 +1,4 @@
-# QuietLedger Architecture
+# OpenLedger Architecture
 
 Architecture documentation lives at [docs/architecture.md](docs/architecture.md).
 
