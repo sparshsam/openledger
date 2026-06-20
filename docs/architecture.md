@@ -46,7 +46,14 @@ Computation helpers live in `src/lib/finance/`. All functions are pure derivatio
 | `insights.ts` | Largest expense, top category, month-over-month change, recurring detection, low balance alerts |
 | `trends.ts` | Monthly trend series (income, expense, net per month) |
 
-All finance functions are tested under `src/lib/finance/__tests__/` (28 tests across 4 test files).
+All finance functions are tested under `src/lib/finance/__tests__/` (41 tests across 6 test files). Additional helpers:
+
+| Module | Purpose |
+|--------|---------|
+| `budgets.ts` | Budget utilization percentage, remaining budget, overspending detection |
+| `goals.ts` | Goal progress percentage |
+
+Both `Budget` and `Goal` types join the `LedgerData` and `PersistedLedgerState` types. The backup payload already included `budgets` and `goals` fields — v0.5.0 populates them with real data.
 
 ## Supabase Foundation (v0.1.1)
 

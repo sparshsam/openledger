@@ -29,12 +29,15 @@ It runs in the browser, stores the active ledger locally, supports CSV import an
 
 ## Current Status
 
-**Maturity:** Maintained. v0.4.0 — dashboard with financial insights and improved transaction view; guest mode remains default.
+**Maturity:** Maintained. v0.5.0 — budgets, savings goals, and enhanced dashboard widgets; guest mode remains default.
 
 OpenLedger is a **maintained early public MVP**. It is useful today as a browser-local ledger, but it is not a bank-connected finance platform and should not be treated as secure long-term storage for sensitive records.
 
 What exists now:
 
+- Monthly category budgets with create, edit, delete, progress bars, and overspending warnings.
+- Savings goals with target amounts, progress tracking, contribution support, and optional target dates.
+- Budget and goal dashboard widgets (budget summary, over-budget alerts, goal progress).
 - Redesigned dashboard with financial summary cards (income, expenses, net cash flow, net worth).
 - SVG charts: spending by category, income vs expenses, account balance distribution, monthly trend.
 - Improved transactions view with search, date range filter, account/category/type filters, and sortable columns.
