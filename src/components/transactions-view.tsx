@@ -145,19 +145,39 @@ export function TransactionsView({
       {filtered.length === 0 ? (
         <NoTransactions />
       ) : (
-        <div className="transaction-table-improved">
-          <div className="table-head">
-            <button className="sort-header" onClick={() => toggleSort("date")}>
+        <div className="transaction-table-improved" role="table" aria-label="Transactions">
+          <div className="table-head" role="row">
+            <button
+              className="sort-header"
+              onClick={() => toggleSort("date")}
+              role="columnheader"
+              aria-sort={sortKey === "date" ? (sortDirAsc ? "ascending" : "descending") : "none"}
+            >
               Date <ArrowUpDown size={13} />
             </button>
-            <span>Description</span>
-            <button className="sort-header" onClick={() => toggleSort("category")}>
+            <span role="columnheader">Description</span>
+            <button
+              className="sort-header"
+              onClick={() => toggleSort("category")}
+              role="columnheader"
+              aria-sort={sortKey === "category" ? (sortDirAsc ? "ascending" : "descending") : "none"}
+            >
               Category <ArrowUpDown size={13} />
             </button>
-            <button className="sort-header" onClick={() => toggleSort("account")}>
+            <button
+              className="sort-header"
+              onClick={() => toggleSort("account")}
+              role="columnheader"
+              aria-sort={sortKey === "account" ? (sortDirAsc ? "ascending" : "descending") : "none"}
+            >
               Account <ArrowUpDown size={13} />
             </button>
-            <button className="sort-header" onClick={() => toggleSort("amount")}>
+            <button
+              className="sort-header"
+              onClick={() => toggleSort("amount")}
+              role="columnheader"
+              aria-sort={sortKey === "amount" ? (sortDirAsc ? "ascending" : "descending") : "none"}
+            >
               Amount <ArrowUpDown size={13} />
             </button>
           </div>

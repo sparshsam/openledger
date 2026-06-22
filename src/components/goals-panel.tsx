@@ -112,7 +112,7 @@ export function GoalsPanel({
             <input type="date" value={form.targetDate} onChange={(e) => setForm({ ...form, targetDate: e.target.value })} />
           </label>
         </div>
-        {error ? <p className="gentle-error">{error}</p> : null}
+        {error ? <p className="gentle-error" role="status" aria-live="polite">{error}</p> : null}
         <div className="form-actions">
           <button onClick={handleSave}>
             <Plus size={16} />
@@ -128,7 +128,7 @@ export function GoalsPanel({
           <p>Set a savings goal to track your progress over time.</p>
         </div>
       ) : (
-        <div className="goal-list">
+        <div className="goal-list" aria-live="polite" aria-atomic="false">
           {goals.map((g) => {
             const progress = goalProgress(g);
             const remaining = g.targetAmount - g.currentAmount;
