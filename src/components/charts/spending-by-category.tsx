@@ -8,6 +8,11 @@ const currencyFormat = new Intl.NumberFormat("en-CA", {
   notation: "compact",
 });
 
+const currencyFormatFull = new Intl.NumberFormat("en-CA", {
+  style: "currency",
+  currency: "CAD",
+});
+
 export function SpendingByCategoryChart({ data }: { data: SpendingData[] }) {
   const expenses = data.filter((d) => d.total < 0);
   if (expenses.length === 0) {
@@ -19,9 +24,12 @@ export function SpendingByCategoryChart({ data }: { data: SpendingData[] }) {
   }
 
   const maxAbs = Math.max(...expenses.map((d) => Math.abs(d.total)), 1);
+  const summary = expenses
+    .map((d) => `${d.category}: ${currencyFormatFull.format(Math.abs(d.total))}`)
+    .join(", ");
 
   return (
-    <div className="chart" role="img" aria-label="Spending by category chart">
+    <div className="chart" role="img" aria-label={`Spending by category: ${summary}`}>
       {expenses.map((d) => {
         const pct = (Math.abs(d.total) / maxAbs) * 100;
         return (
@@ -31,6 +39,7 @@ export function SpendingByCategoryChart({ data }: { data: SpendingData[] }) {
               <div
                 className="chart-bar-fill chart-bar-expense"
                 style={{ width: `${pct}%` }}
+                title={`${d.category}: ${currencyFormatFull.format(Math.abs(d.total))}`}
               />
             </div>
             <span className="chart-value">{currencyFormat.format(d.total)}</span>

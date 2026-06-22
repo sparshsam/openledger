@@ -104,7 +104,7 @@ export function BudgetsPanel({
             <input type="number" min="0" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0.00" />
           </label>
         </div>
-        {error ? <p className="gentle-error">{error}</p> : null}
+        {error ? <p className="gentle-error" role="status" aria-live="polite">{error}</p> : null}
         <div className="form-actions">
           <button onClick={handleSave}>
             <Plus size={16} />
@@ -120,7 +120,8 @@ export function BudgetsPanel({
           <p>Create a budget to track your monthly spending by category.</p>
         </div>
       ) : (
-        Object.entries(budgetsByMonth)
+        <div aria-live="polite" aria-atomic="false">
+        {Object.entries(budgetsByMonth)
           .sort(([a], [b]) => b.localeCompare(a))
           .map(([month, monthBudgets]) => (
             <div key={month} className="budget-month-group">
@@ -167,7 +168,8 @@ export function BudgetsPanel({
                 })}
               </div>
             </div>
-          ))
+          ))}
+        </div>
       )}
     </div>
   );

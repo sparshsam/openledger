@@ -8,6 +8,11 @@ const currencyFormat = new Intl.NumberFormat("en-CA", {
   notation: "compact",
 });
 
+const currencyFormatFull = new Intl.NumberFormat("en-CA", {
+  style: "currency",
+  currency: "CAD",
+});
+
 export function IncomeVsExpensesChart({ data }: { data: PeriodData[] }) {
   if (data.length === 0) {
     return (
@@ -18,9 +23,12 @@ export function IncomeVsExpensesChart({ data }: { data: PeriodData[] }) {
   }
 
   const maxVal = Math.max(...data.map((d) => Math.max(d.income, d.expense)), 1);
+  const summary = data
+    .map((d) => `${d.label} — income ${currencyFormatFull.format(d.income)}, expenses ${currencyFormatFull.format(d.expense)}`)
+    .join("; ");
 
   return (
-    <div className="chart" role="img" aria-label="Income vs expenses chart">
+    <div className="chart" role="img" aria-label={`Income vs expenses: ${summary}`}>
       {data.map((d) => {
         const incomePct = (d.income / maxVal) * 100;
         const expensePct = (d.expense / maxVal) * 100;

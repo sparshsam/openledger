@@ -15,7 +15,6 @@ import {
   CreditCard,
   Download,
   Eye,
-  FileUp,
   FileText,
   Landmark,
   LayoutDashboard,
@@ -59,15 +58,15 @@ import {
   saveLedgerState,
 } from "@/lib/data/persistence";
 import { ledgerData } from "@/lib/data/seed";
+import { createScreenshotLedgerData } from "@/lib/data/screenshot-seed";
 import type { Account, AccountKind, Budget, CategoryPattern, Goal, ImportMetadata, LifeCostEvent, MonthlySnapshot, Transaction } from "@/lib/data/types";
 import { PwaRegister } from "@/components/pwa-register";
-import { SpendingByCategoryChart, IncomeVsExpensesChart, AccountBalancesChart, MonthlyTrendChart } from "@/components/charts";
 import { DashboardSummary } from "@/components/dashboard-summary";
-import { InsightsPanel } from "@/components/insights-panel";
 import { TransactionsView } from "@/components/transactions-view";
-import { GuestModeGuidance, CloudBackupGuidance, NoChartData } from "@/components/empty-states";
+import { GuestModeGuidance, CloudBackupGuidance } from "@/components/empty-states";
 import { BudgetsPanel } from "@/components/budgets-panel";
 import { GoalsPanel } from "@/components/goals-panel";
+import { DataManagementPanel } from "@/components/data-management-panel";
 import { categoryTotals } from "@/lib/finance/grouping";
 import { monthlyTrend } from "@/lib/finance/trends";
 import { accountEffectiveBalance } from "@/lib/finance/totals";
@@ -180,6 +179,7 @@ export default function Home() {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [storageNotice, setStorageNotice] = useState("Loading local ledger...");
   const [hydrated, setHydrated] = useState(false);
+  const screenshotModeRef = useRef(false);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [csvFileName, setCsvFileName] = useState("");
   const [csvMapping, setCsvMapping] = useState<CsvMapping>({});
@@ -279,6 +279,29 @@ export default function Home() {
   );
 
   useEffect(() => {
+    // Screenshot demo mode — loads rich sample data, skips persistence
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("screenshots")) {
+      screenshotModeRef.current = true;
+      const demo = createScreenshotLedgerData();
+      applyLedgerState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        accounts: demo.accounts,
+        transactions: demo.transactions,
+        monthlySnapshots: demo.monthlySnapshots,
+        memories: demo.memories,
+        forecastItems: demo.forecastItems,
+        importMetadata: demo.importMetadata ?? [],
+        budgets: demo.budgets,
+        goals: demo.goals,
+      });
+      setSelectedMonth("2026-06");
+      setStorageNotice("Screenshot demo mode active. Data is not saved.");
+      setHydrated(true);
+      return;
+    }
+
     const result = loadLedgerState(window.localStorage);
     applyLedgerState(result.state);
     setLastSavedAt(result.state.savedAt);
@@ -291,6 +314,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated) return;
+    if (screenshotModeRef.current) return;
     if (skipNextSaveCountRef.current > 0) {
       skipNextSaveCountRef.current -= 1;
       return;
@@ -571,6 +595,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[var(--graphite)] text-[var(--ink)]">
+      <a href="#workspace" className="skip-link">
+        Skip to main content
+      </a>
       <PwaRegister />
       <div className="app-frame">
         <aside className="sidebar">
@@ -633,7 +660,7 @@ export default function Home() {
           </div>
         </aside>
 
-        <section className="workspace">
+        <section className="workspace" id="workspace">
           <header className="topbar">
             <div>
               <h1>This month is stable.</h1>
@@ -653,6 +680,11 @@ export default function Home() {
               </div>
             </div>
             <div className="system-status">
+              {screenshotModeRef.current ? (
+                <span className="screenshot-badge" title="Screenshot demo — data is not persisted">
+                  📸 Screenshot demo
+                </span>
+              ) : null}
               <div>
                 <ShieldCheck size={16} aria-hidden />
                 <span>{localOnly ? "All data is local" : "Prepared for self-hosted sync"}</span>
@@ -669,46 +701,10 @@ export default function Home() {
             {activeNav === "Dashboard" ? (
               <div className="dashboard-page">
                 <GuestModeGuidance />
-                <section className="dashboard-section">
-                  <h2 className="section-title">Financial Summary</h2>
-                  <DashboardSummary accounts={accounts} transactions={transactions} />
-                </section>
-
-                <section className="dashboard-section chart-section">
-                  <h2 className="section-title">Spending by Category</h2>
-                  {transactions.length > 0
-                    ? <SpendingByCategoryChart data={categoryData} />
-                    : <NoChartData message="No transaction data for category breakdown yet." />}
-                </section>
-
-                <section className="dashboard-section chart-section">
-                  <h2 className="section-title">Income vs Expenses</h2>
-                  {trendData.length > 0
-                    ? <IncomeVsExpensesChart data={incomeVsExpenseData} />
-                    : <NoChartData message="No transaction data for income vs expenses yet." />}
-                </section>
-
-                <section className="dashboard-section chart-section">
-                  <h2 className="section-title">Account Balances</h2>
-                  {accounts.filter((a) => !a.archivedAt).length > 0
-                    ? <AccountBalancesChart accounts={effectiveBalances} />
-                    : <NoChartData message="No accounts yet." />}
-                </section>
-
-                <section className="dashboard-section chart-section">
-                  <h2 className="section-title">Monthly Trend</h2>
-                  {trendData.length > 1
-                    ? <MonthlyTrendChart data={trendData} />
-                    : <NoChartData message="Need at least 2 months of data for a trend." />}
-                </section>
-
-                <section className="dashboard-section insights-section">
-                  <h2 className="section-title">Insights</h2>
-                  <InsightsPanel accounts={accounts} transactions={transactions} />
-                </section>
+                <DashboardSummary accounts={accounts} transactions={transactions} />
 
                 {budgets.length > 0 ? (
-                  <section className="dashboard-section chart-section">
+                  <section className="dashboard-section">
                     <h2 className="section-title">Budget Overview — {new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric" }).format(new Date())}</h2>
                     <div className="budget-dashboard-summary">
                       {budgets.filter((b) => b.month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`).map((b) => {
@@ -732,7 +728,7 @@ export default function Home() {
                 ) : null}
 
                 {goals.length > 0 ? (
-                  <section className="dashboard-section chart-section">
+                  <section className="dashboard-section">
                     <h2 className="section-title">Goal Progress</h2>
                     <div className="goal-dashboard-list">
                       {goals.slice(0, 5).map((g) => {
@@ -754,7 +750,7 @@ export default function Home() {
                 ) : null}
 
                 <section className="dashboard-section transactions-section-wide">
-                  <h2 className="section-title">Transactions</h2>
+                  <h2 className="section-title">Recent Transactions</h2>
                   <TransactionsView transactions={transactions} accounts={accounts} />
                 </section>
                 {authMode === "signed-in" ? <CloudBackupGuidance /> : null}
@@ -951,42 +947,21 @@ export default function Home() {
             </Panel>
 
             <Panel
-              title="Local data"
-              className="data-panel"
+              title="Data Management"
+              className="data-management-wrapper"
               control={
                 <span className="privacy-chip">
                   <ShieldCheck size={14} aria-hidden />
-                  Local ledger saved
+                  {authMode === "signed-in" ? "Cloud-ready" : "Local ledger saved"}
                 </span>
               }
             >
-              <div className="data-copy">
-                <strong>{storageNotice}</strong>
-                <p>
-                  OpenLedger stores this ledger in your browser with no bank login, no backend, and no server sync.
-                  Export backups before clearing browser data or changing devices.
-                </p>
-                <span>Last saved: {lastSavedAt ? formatDateTime(lastSavedAt) : "Not saved in this browser yet"}</span>
-              </div>
-              <div className="data-actions">
-                <button onClick={() => downloadLedgerExport(currentLedgerData, importedTransactions, importMetadata)}>
-                  <Download size={16} aria-hidden />
-                  Export JSON
-                </button>
-                <button onClick={() => jsonImportRef.current?.click()}>
-                  <FileUp size={16} aria-hidden />
-                  Import JSON backup
-                </button>
-                <button onClick={resetToDemoData}>
-                  <Archive size={16} aria-hidden />
-                  Reset demo
-                </button>
-                <button className="danger-action" onClick={clearLocalData}>
-                  <Trash2 size={16} aria-hidden />
-                  Clear local data
-                </button>
-                <input ref={jsonImportRef} type="file" accept=".json,application/json" onChange={handleJsonBackup} />
-              </div>
+              <DataManagementPanel
+                user={user}
+                ledgerData={{ accounts, transactions, importMetadata, budgets, goals }}
+                onResetToDemo={resetToDemoData}
+                onClearLocal={clearLocalData}
+              />
             </Panel>
 
             <Panel
@@ -1110,6 +1085,18 @@ export default function Home() {
               <span>{lastSavedAt ? `Saved ${formatTime(lastSavedAt)}` : "Demo fallback"}</span>
             </div>
           </section>
+
+          {/* Live region for storage and status announcements */}
+          <div
+            className="storage-live-region"
+            aria-live="polite"
+            aria-atomic="true"
+            role="status"
+          >
+            {storageNotice ? (
+              <span className="storage-notice">{storageNotice}</span>
+            ) : null}
+          </div>
         </section>
       </div>
     </main>
@@ -1360,8 +1347,9 @@ function ManualTransactionForm({
           <input value={values.note} maxLength={500} onChange={(event) => onChange({ ...values, note: event.target.value })} placeholder="Optional memory or context" />
         </label>
       </div>
-      {error ? <p className="gentle-error">{error}</p> : <p className="gentle-help">Manual entries stay in this browser and are included in backups.</p>}
-      <div className="form-actions">
+      {error ? <p className="gentle-error" id="transaction-form-error">{error}</p> : null}
+      <p className="gentle-help" id="transaction-form-help">Manual entries stay in this browser and are included in backups.</p>
+      <div className="form-actions" role="group" aria-describedby={error ? "transaction-form-error" : "transaction-form-help"}>
         <button onClick={onSave}>
           <Plus size={16} aria-hidden />
           {values.id ? "Save changes" : "Add transaction"}
@@ -1417,8 +1405,9 @@ function AccountManagement({
           <input value={values.subtitle} maxLength={100} onChange={(event) => onChange({ ...values, subtitle: event.target.value })} placeholder="Optional" />
         </label>
       </div>
-      {error ? <p className="gentle-error">{error}</p> : <p className="gentle-help">Archive hides an account but keeps its transaction history.</p>}
-      <div className="form-actions">
+      {error ? <p className="gentle-error" id="account-form-error">{error}</p> : null}
+      <p className="gentle-help" id="account-form-help">Archive hides an account but keeps its transaction history.</p>
+      <div className="form-actions" role="group" aria-describedby={error ? "account-form-error" : "account-form-help"}>
         <button onClick={onSave}>
           <Plus size={16} aria-hidden />
           {values.id ? "Save account" : "Create account"}

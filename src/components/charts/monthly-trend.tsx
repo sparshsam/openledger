@@ -8,6 +8,11 @@ function monthLabel(month: string) {
   );
 }
 
+const currencyFormatFull = new Intl.NumberFormat("en-CA", {
+  style: "currency",
+  currency: "CAD",
+});
+
 export function MonthlyTrendChart({ data }: { data: TrendData[] }) {
   if (data.length < 2) {
     return (
@@ -37,9 +42,15 @@ export function MonthlyTrendChart({ data }: { data: TrendData[] }) {
     )
     .join(" ");
 
+  const summary = data
+    .map((d) => `${monthLabel(d.month)} — income ${currencyFormatFull.format(d.income)}, expenses ${currencyFormatFull.format(d.expense)}`)
+    .join("; ");
+
   return (
-    <div role="img" aria-label="Monthly trend chart showing income and expenses over time">
-      <svg width="100%" height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
+    <div role="img" aria-label={`Monthly trend: ${summary}`}>
+      <svg width="100%" height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        aria-hidden="true"
+      >
         <path d={incomePath} fill="none" stroke="var(--sage-dark)" strokeWidth={2} />
         <path d={expensePath} fill="none" stroke="var(--amber-dark)" strokeWidth={2} />
         {data.map((d, i) => (

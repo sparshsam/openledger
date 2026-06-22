@@ -8,6 +8,11 @@ const currencyFormat = new Intl.NumberFormat("en-CA", {
   notation: "compact",
 });
 
+const currencyFormatFull = new Intl.NumberFormat("en-CA", {
+  style: "currency",
+  currency: "CAD",
+});
+
 export function AccountBalancesChart({ accounts }: { accounts: Account[] }) {
   const active = accounts.filter((a) => !a.archivedAt);
   if (active.length === 0) {
@@ -19,9 +24,12 @@ export function AccountBalancesChart({ accounts }: { accounts: Account[] }) {
   }
 
   const maxAbs = Math.max(...active.map((a) => Math.abs(a.balance)), 1);
+  const summary = active
+    .map((a) => `${a.name}: ${currencyFormatFull.format(a.balance)}`)
+    .join(", ");
 
   return (
-    <div className="chart" role="img" aria-label="Account balance distribution">
+    <div className="chart" role="img" aria-label={`Account balances: ${summary}`}>
       {active.map((a) => {
         const pct = (Math.abs(a.balance) / maxAbs) * 100;
         return (
@@ -31,6 +39,7 @@ export function AccountBalancesChart({ accounts }: { accounts: Account[] }) {
               <div
                 className={`chart-bar-fill ${a.balance >= 0 ? "chart-bar-income" : "chart-bar-expense"}`}
                 style={{ width: `${pct}%` }}
+                title={`${a.name}: ${currencyFormatFull.format(a.balance)}`}
               />
             </div>
             <span className={`chart-value ${a.balance < 0 ? "negative" : "positive"}`}>
