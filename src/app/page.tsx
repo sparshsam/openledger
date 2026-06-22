@@ -4,20 +4,14 @@ import {
   Archive,
   ArrowRight,
   Banknote,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle2,
+  ChevronRight,
   CircleDollarSign,
-  Cloud,
-  Columns3,
   Copy,
   CreditCard,
   Download,
-  Eye,
   FileText,
   Landmark,
-  LayoutDashboard,
   Moon,
   Pencil,
   PiggyBank,
@@ -33,6 +27,7 @@ import {
   WalletCards,
   AlertTriangle,
 } from "lucide-react";
+import Link from "next/link";
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth, getAuthMode } from "@/lib/supabase/auth-hook";
@@ -61,15 +56,11 @@ import { ledgerData } from "@/lib/data/seed";
 import { createScreenshotLedgerData } from "@/lib/data/screenshot-seed";
 import type { Account, AccountKind, Budget, CategoryPattern, Goal, ImportMetadata, LifeCostEvent, MonthlySnapshot, Transaction } from "@/lib/data/types";
 import { PwaRegister } from "@/components/pwa-register";
-import { DashboardSummary } from "@/components/dashboard-summary";
 import { TransactionsView } from "@/components/transactions-view";
 import { GuestModeGuidance, CloudBackupGuidance } from "@/components/empty-states";
 import { BudgetsPanel } from "@/components/budgets-panel";
 import { GoalsPanel } from "@/components/goals-panel";
 import { DataManagementPanel } from "@/components/data-management-panel";
-import { categoryTotals } from "@/lib/finance/grouping";
-import { monthlyTrend } from "@/lib/finance/trends";
-import { accountEffectiveBalance } from "@/lib/finance/totals";
 import { budgetUtilization, remainingBudget, isOverBudget } from "@/lib/finance/budgets";
 import { goalProgress } from "@/lib/finance/goals";
 
@@ -78,17 +69,12 @@ const currency = new Intl.NumberFormat("en-CA", {
   currency: "CAD",
 });
 
-const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard },
-  { label: "Overview", icon: Archive },
-  { label: "Accounts", icon: WalletCards },
-  { label: "Transactions", icon: ReceiptText },
-  { label: "Budgets", icon: PiggyBank },
-  { label: "Goals", icon: Sparkles },
-  { label: "Memory", icon: Archive },
-  { label: "Forecast", icon: Cloud },
-  { label: "Settings", icon: Settings },
-];
+const TABS = ["Home", "Transactions", "Budgets", "Goals", "Settings"] as const;
+type Tab = (typeof TABS)[number];
+
+const tabIcons: Record<string, typeof FileText> = {
+  Home: FileText, Transactions: ReceiptText, Budgets: PiggyBank, Goals: Sparkles, Settings,
+};
 
 const accountIcons: Record<AccountKind, typeof Banknote> = {
   chequing: WalletCards,
@@ -161,13 +147,10 @@ const csvFields: Array<{ field: CsvField; label: string; required?: boolean }> =
 export default function Home() {
   const { user, profile, loading: authLoading } = useAuth();
   const authMode = getAuthMode(user);
-  const [activeNav, setActiveNav] = useState("Overview");
+  const [activeTab, setActiveTab] = useState<Tab>("Home");
   const [selectedAccountId, setSelectedAccountId] = useState("chequing");
-  const [selectedPatternId, setSelectedPatternId] = useState("delivery");
-  const [selectedMemoryId, setSelectedMemoryId] = useState("feb-2026");
   const [selectedMonth, setSelectedMonth] = useState("2026-05");
   const [localOnly, setLocalOnly] = useState(true);
-  const [patternFilter, setPatternFilter] = useState("");
   const [accounts, setAccounts] = useState(ledgerData.accounts);
   const [transactions, setTransactions] = useState(ledgerData.transactions);
   const [monthlySnapshots, setMonthlySnapshots] = useState(ledgerData.monthlySnapshots);
@@ -209,20 +192,6 @@ export default function Home() {
   const nextSaveNoticeRef = useRef<string | null>(null);
 
   const importedTransactions = transactions.filter((transaction) => transaction.source === "csv");
-  const trendData = useMemo(() => monthlyTrend(transactions), [transactions]);
-  const categoryData = useMemo(() => categoryTotals(transactions), [transactions]);
-  const incomeVsExpenseData = useMemo(
-    () => trendData.map((d) => ({
-      label: new Intl.DateTimeFormat("en-CA", { month: "short", year: "2-digit" }).format(new Date(`${d.month}-01T12:00:00`)),
-      income: d.income,
-      expense: d.expense,
-    })),
-    [trendData],
-  );
-  const effectiveBalances = useMemo(
-    () => accounts.map((a) => ({ ...a, balance: accountEffectiveBalance(a, transactions) })),
-    [accounts, transactions],
-  );
   const currentLedgerData = { ...ledgerData, accounts, transactions, monthlySnapshots, memories, forecastItems, importMetadata, budgets, goals };
   const activeAccounts = accounts.filter((account) => !account.archivedAt);
   const accountsWithBalances = useMemo(
@@ -239,22 +208,10 @@ export default function Home() {
     [accounts, transactions],
   );
   const visibleAccountsWithBalances = accountsWithBalances.filter((account) => !account.archivedAt);
-  const monthOptions = useMemo(() => buildMonthOptions(transactions, monthlySnapshots), [monthlySnapshots, transactions]);
-
-  const fallbackSnapshot =
-    monthlySnapshots.find((item) => item.month === selectedMonth) ?? monthlySnapshots[0] ?? ledgerData.monthlySnapshots[0];
-  const snapshot = buildSnapshot(selectedMonth, transactions, fallbackSnapshot);
   const selectedAccount =
     visibleAccountsWithBalances.find((account) => account.id === selectedAccountId) ??
     visibleAccountsWithBalances[0] ??
     accountsWithBalances[0];
-  const selectedMemory = memories.find((memory) => memory.id === selectedMemoryId) ?? memories[0] ?? ledgerData.memories[0];
-  const filteredPatterns = ledgerData.patterns.filter((pattern) =>
-    `${pattern.title} ${pattern.detail} ${pattern.category}`.toLowerCase().includes(patternFilter.toLowerCase()),
-  );
-  const visiblePatterns = patternFilter ? filteredPatterns : filteredPatterns.slice(0, 2);
-  const selectedPattern =
-    ledgerData.patterns.find((pattern) => pattern.id === selectedPatternId) ?? ledgerData.patterns[0];
   const importPreview = useMemo(
     () =>
       parsedCsv
@@ -276,6 +233,39 @@ export default function Home() {
   const transactionsForAccount = useMemo(
     () => transactions.filter((transaction) => transaction.accountId === selectedAccount.id),
     [selectedAccount.id, transactions],
+  );
+
+  const monthsCurrent = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
+
+  const netWorth = useMemo(() => {
+    return accountsWithBalances.reduce((sum, a) => sum + a.balance, 0);
+  }, [accountsWithBalances]);
+
+  const monthlyIncome = useMemo(() => {
+    return transactions
+      .filter((t) => t.amount > 0 && t.date.startsWith(monthsCurrent))
+      .reduce((s, t) => s + t.amount, 0);
+  }, [transactions, monthsCurrent]);
+
+  const monthlyExpense = useMemo(() => {
+    return Math.abs(
+      transactions
+        .filter((t) => t.amount < 0 && t.date.startsWith(monthsCurrent))
+        .reduce((s, t) => s + t.amount, 0),
+    );
+  }, [transactions, monthsCurrent]);
+
+  const currentMonthBudgets = useMemo(
+    () => budgets.filter((b) => b.month === monthsCurrent),
+    [budgets, monthsCurrent],
+  );
+
+  const recentTransactions = useMemo(
+    () => transactions.slice(0, 10),
+    [transactions],
   );
 
   useEffect(() => {
@@ -345,7 +335,6 @@ export default function Home() {
     setGoals(state.goals);
     setSelectedAccountId(state.accounts[0]?.id ?? "chequing");
     setSelectedMonth(state.monthlySnapshots[0]?.month ?? "2026-05");
-    setSelectedMemoryId(state.memories[0]?.id ?? "feb-2026");
   }
 
   const MAX_CSV_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
@@ -387,7 +376,7 @@ export default function Home() {
     setParsedCsv(null);
     setCsvFileName("");
     setCsvMapping({});
-    setActiveNav("Transactions");
+    setActiveTab("Transactions");
   }
 
   async function handleJsonBackup(event: ChangeEvent<HTMLInputElement>) {
@@ -403,7 +392,7 @@ export default function Home() {
       }
       nextSaveNoticeRef.current = result.warning ?? `Restored backup from ${file.name}.`;
       applyLedgerState(result.state);
-      setActiveNav("Overview");
+      setActiveTab("Home");
     } catch {
       setStorageNotice("Backup could not be read. No local data was changed.");
     } finally {
@@ -474,7 +463,7 @@ export default function Home() {
       note: "",
     });
     setTransactionError("");
-    setActiveNav("Transactions");
+    setActiveTab("Transactions");
   }
 
   function editTransaction(transaction: Transaction) {
@@ -594,545 +583,290 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--graphite)] text-[var(--ink)]">
-      <a href="#workspace" className="skip-link">
-        Skip to main content
-      </a>
+    <main className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <a href="#workspace" className="skip-link">Skip to main content</a>
       <PwaRegister />
       <div className="app-frame">
-        <aside className="sidebar">
-          <div>
-            <div className="window-dots" aria-hidden>
-              <span />
-              <span />
-              <span />
-            </div>
-            <div className="brand">
-              <div className="brand-mark">
-                <FileText size={18} aria-hidden />
-              </div>
-              <div>
-                <p>OpenLedger</p>
-                <span>Money without noise.</span>
-              </div>
-            </div>
-
-            <nav className="nav-list" aria-label="Primary navigation">
-              {navItems.map((item) => (
+        <aside className="left-rail">
+          <Link href="/" className="left-rail-brand">
+            <FileText size={22} aria-hidden />
+            <span>OpenLedger</span>
+          </Link>
+          <nav className="left-rail-nav" aria-label="Primary navigation">
+            {TABS.map((tab) => {
+              const Icon = tabIcons[tab];
+              return (
                 <button
-                  key={item.label}
-                  className={activeNav === item.label ? "active" : ""}
-                  onClick={() => setActiveNav(item.label)}
+                  key={tab}
+                  className={activeTab === tab ? "active" : ""}
+                  onClick={() => setActiveTab(tab)}
+                  aria-current={activeTab === tab ? "page" : undefined}
                 >
-                  <item.icon size={18} aria-hidden />
-                  <span>{item.label}</span>
+                  <Icon size={20} aria-hidden />
+                  <span>{tab}</span>
                 </button>
-              ))}
-            </nav>
-          </div>
-
-          <div className="sidebar-lower">
-            <section className="local-panel" aria-label="Auth status">
-              <div>
-                <span className={`status-dot ${authMode === "signed-in" ? "online" : ""}`} />
-                <strong>{authMode === "signed-in" ? "Signed in" : "Guest mode"}</strong>
-              </div>
-              <p>
-                {authMode === "signed-in"
-                  ? profile?.email ?? user?.email ?? "Cloud-ready"
-                  : "No account needed. Data stays local."}
-              </p>
-            </section>
-
-            <div className="quiet-mode">
-              <span>
-                <Moon size={16} aria-hidden />
-                Quiet mode
-              </span>
-              <button
-                className={localOnly ? "toggle on" : "toggle"}
-                onClick={() => setLocalOnly((current) => !current)}
-                aria-label="Toggle local-only mode"
-              >
-                <span />
-              </button>
+              );
+            })}
+          </nav>
+          <div className="left-rail-footer">
+            <div className="guest-badge">
+              <span className={"status-dot " + (authMode === "signed-in" ? "online" : "")} />
+              <span>{authMode === "signed-in" ? (profile?.email ?? "Signed in") : "Guest mode"}</span>
             </div>
+            {screenshotModeRef.current ? (
+              <span className="screenshot-badge" style={{ marginTop: 8, marginLeft: 14 }}>Screenshot demo</span>
+            ) : null}
           </div>
         </aside>
-
         <section className="workspace" id="workspace">
-          <header className="topbar">
-            <div>
-              <h1>This month is stable.</h1>
-              <div className="month-row">
-                <label>
-                  <span className="sr-only">Selected month</span>
-                  <select value={selectedMonth} onChange={(event) => setSelectedMonth(event.target.value)}>
-                    {monthOptions.map((month) => (
-                      <option key={month.value} value={month.value}>
-                        {month.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <span className="divider" />
-                <span>{snapshot.daysLeft > 0 ? `${snapshot.daysLeft} days left` : "Month closed"}</span>
-              </div>
-            </div>
-            <div className="system-status">
-              {screenshotModeRef.current ? (
-                <span className="screenshot-badge" title="Screenshot demo — data is not persisted">
-                  📸 Screenshot demo
-                </span>
-              ) : null}
-              <div>
-                <ShieldCheck size={16} aria-hidden />
-                <span>{localOnly ? "All data is local" : "Prepared for self-hosted sync"}</span>
-              </div>
-              <p>Last backup: Today, 11:32 PM</p>
-              <button onClick={() => downloadLedgerExport(currentLedgerData, importedTransactions, importMetadata)}>
-                <Download size={15} aria-hidden />
-                Export JSON
-              </button>
-            </div>
-          </header>
-
-          <div className="dashboard-grid">
-            {activeNav === "Dashboard" ? (
-              <div className="dashboard-page">
-                <GuestModeGuidance />
-                <DashboardSummary accounts={accounts} transactions={transactions} />
-
-                {budgets.length > 0 ? (
-                  <section className="dashboard-section">
-                    <h2 className="section-title">Budget Overview — {new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric" }).format(new Date())}</h2>
-                    <div className="budget-dashboard-summary">
-                      {budgets.filter((b) => b.month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`).map((b) => {
-                        const util = budgetUtilization(b, transactions);
-                        const remaining = remainingBudget(b, transactions);
-                        const over = isOverBudget(b, transactions);
-                        return (
-                          <div key={b.id} className={`budget-mini ${over ? "over-budget" : ""}`}>
-                            <div className="budget-mini-header">
-                              <strong>{b.category}</strong>
-                              <span className={over ? "negative" : "positive"}>{remaining >= 0 ? `$${remaining.toFixed(0)} left` : `$${Math.abs(remaining).toFixed(0)} over`}</span>
-                            </div>
-                            <div className="budget-bar-track">
-                              <div className={`budget-bar-fill ${over ? "budget-bar-over" : util > 80 ? "budget-bar-warn" : "budget-bar-ok"}`} style={{ width: `${util}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ) : null}
-
-                {goals.length > 0 ? (
-                  <section className="dashboard-section">
-                    <h2 className="section-title">Goal Progress</h2>
-                    <div className="goal-dashboard-list">
-                      {goals.slice(0, 5).map((g) => {
-                        const progress = goalProgress(g);
-                        return (
-                          <div key={g.id} className="budget-mini">
-                            <div className="budget-mini-header">
-                              <strong>{g.name}</strong>
-                              <span>{progress}%</span>
-                            </div>
-                            <div className="budget-bar-track">
-                              <div className={`budget-bar-fill ${progress >= 100 ? "budget-bar-ok" : "budget-bar-warn"}`} style={{ width: `${progress}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ) : null}
-
-                <section className="dashboard-section transactions-section-wide">
-                  <h2 className="section-title">Recent Transactions</h2>
-                  <TransactionsView transactions={transactions} accounts={accounts} />
-                </section>
-                {authMode === "signed-in" ? <CloudBackupGuidance /> : null}
-              </div>
-            ) : activeNav === "Budgets" ? (
-              <Panel title="Budgets" className="budgets-panel-section">
-                <BudgetsPanel budgets={budgets} transactions={transactions} onSave={saveBudget} onDelete={deleteBudget} />
-              </Panel>
-            ) : activeNav === "Goals" ? (
-              <Panel title="Goals" className="goals-panel-section">
-                <GoalsPanel goals={goals} onSave={saveGoal} onDelete={deleteGoal} onContribute={contributeToGoal} />
-              </Panel>
-            ) : (
-              <>
-            <Panel className="accounts-panel" title="Accounts" action="View all accounts">
-              <div className="account-list">
-                {visibleAccountsWithBalances.map((account) => (
-                  <AccountRow
-                    key={account.id}
-                    account={account}
-                    selected={selectedAccount.id === account.id}
-                    onSelect={() => setSelectedAccountId(account.id)}
-                  />
-                ))}
-              </div>
-            </Panel>
-
-            <Panel title="Monthly snapshot" action="Details">
-              <div className="snapshot-list">
-                {snapshot.metrics.map((metric) => (
-                  <div className="metric-row" key={metric.id}>
-                    <span>{metric.label}</span>
-                    <strong className={metric.amount < 0 ? "negative" : "positive"}>{currency.format(metric.amount)}</strong>
-                    <span className="meter" aria-hidden>
-                      <span className={metric.tone} style={{ width: `${metric.ratio * 100}%` }} />
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="panel-foot">Compared to April 2026</div>
-            </Panel>
-
-            <Panel title="Quiet Categorization insights" action="View all insights" className="insights-panel">
-              <label className="search-box">
-                <Search size={15} aria-hidden />
-                <span className="sr-only">Filter transaction patterns</span>
-                <input
-                  value={patternFilter}
-                  onChange={(event) => setPatternFilter(event.target.value)}
-                  placeholder="Filter patterns"
-                />
-              </label>
-              <div className="insight-list">
-                {visiblePatterns.map((pattern) => (
-                  <PatternButton
-                    key={pattern.id}
-                    pattern={pattern}
-                    selected={selectedPattern.id === pattern.id}
-                    onSelect={() => setSelectedPatternId(pattern.id)}
-                  />
-                ))}
-              </div>
-            </Panel>
-
-            <Panel
-              title="Financial Memory"
-              className="memory-panel"
-              action="View full memory"
-              control={
-                <div className="memory-controls">
-                  <select value={selectedMemoryId} onChange={(event) => setSelectedMemoryId(event.target.value)}>
-                    {memories.map((memory) => (
-                      <option key={memory.id} value={memory.id}>
-                        {memory.month}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronLeft size={16} aria-hidden />
-                  <ChevronRight size={16} aria-hidden />
-                </div>
-              }
-            >
-              <p className="memory-summary">{selectedMemory.summary}</p>
-              <div className="memory-list">
-                {selectedMemory.entries.map((entry) => (
-                  <div key={`${selectedMemory.id}-${entry.label}`}>
-                    <span className="memory-icon">
-                      <FileText size={15} aria-hidden />
-                    </span>
-                    <div>
-                      <strong>{entry.label}</strong>
-                      <p>{entry.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-
-            <Panel title="Calm Forecast" action="View full forecast" className="forecast-panel">
-              <h3>Upcoming recurring bills</h3>
-              <div className="forecast-list">
-                {forecastItems
-                  .filter((item) => item.kind === "bill")
-                  .map((item) => (
-                    <div key={item.id}>
-                      <span>{item.date}</span>
-                      <strong>{item.label}</strong>
-                      <em>{currency.format(Math.abs(item.amount))}</em>
-                    </div>
-                  ))}
-              </div>
-              <h3>Low-cash pressure windows</h3>
-              <div className="pressure-list">
-                {forecastItems
-                  .filter((item) => item.kind === "pressure")
-                  .map((item) => (
-                    <div key={item.id}>
-                      <span />
-                      <strong>{item.date}</strong>
-                      <em>(3 days)</em>
-                    </div>
-                  ))}
-              </div>
-            </Panel>
-
-            <Panel
-              title="Life Cost Map"
-              className="map-panel"
-              control={
-                <button className="plain-control">
-                  Show: 6 months
-                  <ChevronDown size={15} aria-hidden />
+          {activeTab === "Home" ? (
+            <div className="home-screen">
+              {screenshotModeRef.current ? <span className="screenshot-badge" style={{ marginBottom: 8 }}>Screenshot demo</span> : null}
+              <GuestModeGuidance />
+              <section aria-label="Financial summary">
+                <p className="hero-headline">{monthlyIncome > monthlyExpense ? "You're on track." : "Let's review the numbers."}</p>
+                <p className="hero-net-worth">{currency.format(netWorth)}</p>
+                <p className="hero-change">
+                  {monthlyIncome > monthlyExpense
+                    ? "+" + currency.format(monthlyIncome - monthlyExpense) + " this month"
+                    : currency.format(monthlyExpense - monthlyIncome) + " overspent this month"}
+                </p>
+              </section>
+              <div className="quick-actions">
+                <button className="quick-action primary" onClick={() => setActiveTab("Transactions")}>
+                  <Plus size={16} aria-hidden /> Add transaction
                 </button>
-              }
-            >
-              <LifeCostMap events={ledgerData.lifeCostEvents} />
-            </Panel>
-
-            <Panel
-              title={transactionForm.id ? "Edit transaction" : "Manual transaction"}
-              className="manual-panel"
-              control={
-                <span className="privacy-chip">
-                  <Plus size={14} aria-hidden />
-                  Local entry
-                </span>
-              }
-            >
-              <ManualTransactionForm
-                values={transactionForm}
-                accounts={activeAccounts}
-                error={transactionError}
-                onChange={setTransactionForm}
-                onSave={saveManualTransaction}
-                onCancel={() => {
-                  setTransactionForm({
-                    date: today,
-                    description: "",
-                    merchant: "",
-                    amount: "",
-                    direction: "expense",
-                    accountId: activeAccounts[0]?.id ?? "chequing",
-                    category: "Misc",
-                    note: "",
-                  });
-                  setTransactionError("");
-                }}
-              />
-            </Panel>
-
-            <Panel
-              title={accountForm.id ? "Edit account" : "Account management"}
-              className="account-management-panel"
-              control={
-                <span className="privacy-chip">
-                  <WalletCards size={14} aria-hidden />
-                  {activeAccounts.length} active
-                </span>
-              }
-            >
-              <AccountManagement
-                values={accountForm}
-                accounts={accountsWithBalances}
-                error={accountError}
-                onChange={setAccountForm}
-                onSave={saveAccount}
-                onCancel={() => {
-                  setAccountForm({ name: "", kind: "chequing", subtitle: "", balance: "" });
-                  setAccountError("");
-                }}
-                onEdit={editAccount}
-                onArchive={archiveAccount}
-              />
-            </Panel>
-
-            <Panel
-              title="Data Management"
-              className="data-management-wrapper"
-              control={
-                <span className="privacy-chip">
-                  <ShieldCheck size={14} aria-hidden />
-                  {authMode === "signed-in" ? "Cloud-ready" : "Local ledger saved"}
-                </span>
-              }
-            >
-              <DataManagementPanel
-                user={user}
-                ledgerData={{ accounts, transactions, importMetadata, budgets, goals }}
-                onResetToDemo={resetToDemoData}
-                onClearLocal={clearLocalData}
-              />
-            </Panel>
-
-            <Panel
-              title={authMode === "signed-in" ? "Account" : "Sign in (optional)"}
-              className="auth-panel"
-              control={
-                <span className="privacy-chip">
-                  <ShieldCheck size={14} aria-hidden />
-                  {authMode === "signed-in" ? "Cloud-ready" : "Guest mode"}
-                </span>
-              }
-            >
-              <AuthPanel user={user} profile={profile} onSignOut={() => {}} />
-            </Panel>
-
-            {authMode === "signed-in" ? (
-              <Panel
-                title="Cloud Backup"
-                className="backup-panel"
-                control={
-                  <span className="privacy-chip">
-                    <ShieldCheck size={14} aria-hidden />
-                    Manual sync
-                  </span>
-                }
-              >
-                <CloudBackupPanel
-                  user={user}
-                  ledgerData={{ accounts, transactions, budgets, goals }}
-                  onRestore={handleRestoreFromCloud}
-                />
-              </Panel>
-            ) : null}
-
-            <Panel
-              title="CSV import"
-              action={parsedCsv ? undefined : "No bank login required"}
-              className="import-panel"
-              control={
-                <span className="privacy-chip">
-                  <ShieldCheck size={14} aria-hidden />
-                  Browser-only parsing
-                </span>
-              }
-            >
-              <div className="import-intro">
-                <div>
-                  <strong>Bring your bank export, not your bank login.</strong>
-                  <p>CSV parsing happens locally in this browser. In local mode, transaction data does not leave this device.</p>
+                <button className="quick-action" onClick={() => downloadLedgerExport(currentLedgerData, importedTransactions, importMetadata)}>
+                  <Download size={16} aria-hidden /> Export
+                </button>
+              </div>
+              <section aria-label="Accounts">
+                <div className="section-header">
+                  <h2 className="section-title">Accounts</h2>
                 </div>
-                <label className="file-picker">
-                  <Upload size={16} aria-hidden />
-                  Select CSV
-                  <input type="file" accept=".csv,text/csv" onChange={handleCsvFile} />
-                </label>
-              </div>
-
-              <div className="import-status">
-                <CheckCircle2 size={15} aria-hidden />
-                <span>{importNotice}</span>
-              </div>
-
-              {parsedCsv ? (
-                <CsvImportPreview
-                  headers={parsedCsv.headers}
-                  mapping={csvMapping}
-                  onMappingChange={(field, header) =>
-                    setCsvMapping((current) => ({ ...current, [field]: header || undefined }))
-                  }
-                  defaultAccountId={defaultImportAccountId}
-                  onDefaultAccountChange={setDefaultImportAccountId}
-                  accounts={activeAccounts}
-                  rows={importPreview}
-                  validCount={validImportRows.length}
-                  duplicateCount={duplicateImportRows.length}
-                  errorCount={errorImportRows.length}
-                  onSave={saveImportedTransactions}
-                />
-              ) : (
-                <div className="import-empty">
-                  <Columns3 size={18} aria-hidden />
-                  <span>Supports headers like Date, Description, Debit, Credit, Amount, Account, Category, and Type.</span>
+                <div className="accounts-strip" role="list" aria-label="Account balances">
+                  {visibleAccountsWithBalances.map((a) => (
+                    <div key={a.id} className="account-card" role="listitem">
+                      <span className="account-card-name">{a.name}</span>
+                      <span className={"account-card-balance " + (a.balance < 0 ? "negative" : "positive")}>{currency.format(a.balance)}</span>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </Panel>
-
-            <Panel title="Recent transactions" action="View all transactions" className="transactions-panel">
-              <TransactionTable selectedAccount={selectedAccount} />
-            </Panel>
-
-            <Panel title="Notes" action="View all notes" className="notes-panel">
-              <div className="notes-list">
-                <Note date="Apr 30" text="Worked late this week. More takeout. Budget held up." />
-                <Note date="Apr 21" text="Remember to review insurance coverage in May." />
-                <Note date="Apr 10" text="Looking at switching internet plan next month." />
+              </section>
+              {currentMonthBudgets.length > 0 ? (
+                <section aria-label="Budget progress">
+                  <div className="section-header">
+                    <h2 className="section-title">Budgets</h2>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("Budgets"); }}>Manage</a>
+                  </div>
+                  <div className="budget-mini-list">
+                    {currentMonthBudgets.map((b) => {
+                      const util = budgetUtilization(b, transactions);
+                      const remaining = remainingBudget(b, transactions);
+                      const over = isOverBudget(b, transactions);
+                      return (
+                        <div key={b.id} className="budget-mini">
+                          <div className="budget-mini-header">
+                            <strong>{b.category}</strong>
+                            <span className={"budget-mini-remaining " + (over ? "negative" : util > 80 ? "warning" : "positive")}>{remaining >= 0 ? "$" + remaining.toFixed(0) + " left" : "$" + Math.abs(remaining).toFixed(0) + " over"}</span>
+                          </div>
+                          <div className="budget-mini-track">
+                            <div className={"budget-mini-fill " + (over ? "over" : util > 80 ? "warn" : "ok")} style={{ width: Math.min(util, 100) + "%" }} />
+                          </div>
+                          <div className="budget-mini-footer">
+                            <span>{currency.format(b.amount)} total</span>
+                            <span>{util}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+              {goals.length > 0 ? (
+                <section aria-label="Goal progress">
+                  <div className="section-header">
+                    <h2 className="section-title">Goals</h2>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("Goals"); }}>Manage</a>
+                  </div>
+                  <div className="goal-mini-list">
+                    {goals.slice(0, 3).map((g) => {
+                      const progress = goalProgress(g);
+                      return (
+                        <div key={g.id} className="goal-mini">
+                          <div className="goal-mini-header">
+                            <strong>{g.name}</strong>
+                            <span className="goal-mini-pct">{progress}%</span>
+                          </div>
+                          <div className="budget-mini-track">
+                            <div className="budget-mini-fill ok" style={{ width: Math.min(progress, 100) + "%" }} />
+                          </div>
+                          <div className="budget-mini-footer">
+                            <span>{currency.format(g.currentAmount)} / {currency.format(g.targetAmount)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+              <section aria-label="Recent transactions">
+                <div className="section-header">
+                  <h2 className="section-title">Recent</h2>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("Transactions"); }}>All transactions</a>
+                </div>
+                <div className="card">
+                  {recentTransactions.length === 0 ? (
+                    <div className="tx-empty">
+                      <strong>No transactions yet</strong>
+                      <p>Import a CSV or add your first transaction to get started.</p>
+                    </div>
+                  ) : (
+                    <div className="recent-list">
+                      {recentTransactions.map((t) => (
+                        <div key={t.id} className="recent-row">
+                          <div className="recent-icon"><Banknote size={18} aria-hidden /></div>
+                          <div className="recent-info">
+                            <div className="recent-description">{t.description}</div>
+                            <div className="recent-meta">{t.category} . {t.date}</div>
+                          </div>
+                          <span className={"recent-amount " + (t.amount > 0 ? "positive" : "negative")}>{currency.format(t.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          ) : activeTab === "Transactions" ? (
+            <div className="tx-view">
+              <div className="tx-header"><h1>Transactions</h1></div>
+              <div className="card"><TransactionsView transactions={transactions} accounts={accounts} /></div>
+              <div className="form-card" style={{ marginTop: 0 }}>
+                <h2>Add transaction</h2>
+                <ManualTransactionForm
+                  values={transactionForm} accounts={activeAccounts} error={transactionError}
+                  onChange={setTransactionForm} onSave={saveManualTransaction}
+                  onCancel={() => { setTransactionForm({ date: today, description: "", merchant: "", amount: "", direction: "expense", accountId: activeAccounts[0]?.id ?? "chequing", category: "Misc", note: "" }); setTransactionError(""); }}
+                />
               </div>
-            </Panel>
-            </>)
-          }
-          </div>
-
-          <section className="selection-strip" aria-label="Selected local context">
-            <div>
-              <Eye size={16} aria-hidden />
-              <span>Viewing {activeNav}</span>
+              {transactions.length > 0 ? (
+                <div className="card">
+                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 12px" }}>All transactions</h3>
+                  <TransactionTable selectedAccount={selectedAccount} />
+                </div>
+              ) : null}
             </div>
-            <div>
-              <WalletCards size={16} aria-hidden />
-              <span>{selectedAccount.name}: {currency.format(selectedAccount.balance)}</span>
+          ) : activeTab === "Budgets" ? (
+            <div className="budgets-view">
+              <div className="section-header"><h1>Budgets</h1></div>
+              <BudgetsPanel budgets={budgets} transactions={transactions} onSave={saveBudget} onDelete={deleteBudget} />
             </div>
-            <div>
-              <Sparkles size={16} aria-hidden />
-              <span>{selectedPattern.category}</span>
+          ) : activeTab === "Goals" ? (
+            <div className="goals-view">
+              <div className="section-header"><h1>Goals</h1></div>
+              <GoalsPanel goals={goals} onSave={saveGoal} onDelete={deleteGoal} onContribute={contributeToGoal} />
             </div>
-            <div>
-              <Upload size={16} aria-hidden />
-              <span>{importedTransactions.length} imported</span>
+          ) : (
+            <div className="settings-view">
+              <div className="section-header"><h1>Settings</h1></div>
+              <div className="settings-section">
+                <div className="settings-section-header"><ShieldCheck size={16} aria-hidden /> Account</div>
+                <div className="settings-row"><span className="settings-row-label">Status</span><AuthPanel user={user} profile={profile} onSignOut={() => {}} /></div>
+              </div>
+              {authMode === "signed-in" ? (
+                <div className="settings-section">
+                  <div className="settings-section-header"><Download size={16} aria-hidden /> Cloud Backup</div>
+                  <div className="settings-row"><CloudBackupPanel user={user} ledgerData={{ accounts, transactions, budgets, goals }} onRestore={handleRestoreFromCloud} /></div>
+                </div>
+              ) : null}
+              <div className="settings-section">
+                <div className="settings-section-header"><Download size={16} aria-hidden /> Data</div>
+                <DataManagementPanel user={user} ledgerData={{ accounts, transactions, importMetadata, budgets, goals }} onResetToDemo={resetToDemoData} onClearLocal={clearLocalData} />
+              </div>
+              <div className="settings-section">
+                <div className="settings-section-header"><Upload size={16} aria-hidden /> CSV Import</div>
+                <div style={{ padding: "12px 20px" }}>
+                  <div className="import-intro">
+                    <div><strong>Bring your bank export, not your bank login.</strong><p>CSV parsing happens locally in this browser.</p></div>
+                    <label className="file-picker"><Upload size={16} aria-hidden /> Select CSV<input type="file" accept=".csv,text/csv" onChange={handleCsvFile} /></label>
+                  </div>
+                  <div className="import-status" style={{ marginTop: 12 }}><CheckCircle2 size={15} aria-hidden /><span>{importNotice}</span></div>
+                  {parsedCsv ? (
+                    <CsvImportPreview
+                      headers={parsedCsv.headers} mapping={csvMapping}
+                      onMappingChange={(field, header) => setCsvMapping((current) => ({ ...current, [field]: header || undefined }))}
+                      defaultAccountId={defaultImportAccountId} onDefaultAccountChange={setDefaultImportAccountId}
+                      accounts={activeAccounts} rows={importPreview}
+                      validCount={validImportRows.length} duplicateCount={duplicateImportRows.length} errorCount={errorImportRows.length}
+                      onSave={saveImportedTransactions}
+                    />
+                  ) : null}
+                </div>
+              </div>
+              <div className="settings-section">
+                <div className="settings-section-header"><WalletCards size={16} aria-hidden /> Manage Accounts ({activeAccounts.length} active)</div>
+                <div style={{ padding: "12px 20px" }}>
+                  <AccountManagement values={accountForm} accounts={accountsWithBalances} error={accountError}
+                    onChange={setAccountForm} onSave={saveAccount}
+                    onCancel={() => { setAccountForm({ name: "", kind: "chequing", subtitle: "", balance: "" }); setAccountError(""); }}
+                    onEdit={editAccount} onArchive={archiveAccount} />
+                </div>
+              </div>
+              <div className="settings-section">
+                <div className="settings-section-header"><Moon size={16} aria-hidden /> Preferences</div>
+                <div className="settings-row"><span className="settings-row-label">Local-only mode</span><button onClick={() => setLocalOnly((current) => !current)}>{localOnly ? "On" : "Off"}</button></div>
+              </div>
+              <div className="settings-section">
+                <div className="settings-section-header"><ShieldCheck size={16} aria-hidden /> Legal</div>
+                <div className="settings-row"><a href="/privacy" className="settings-row-label" style={{ textDecoration: "none" }}>Privacy Policy</a><ArrowRight size={16} aria-hidden /></div>
+                <div className="settings-row"><a href="/terms" className="settings-row-label" style={{ textDecoration: "none" }}>Terms of Service</a><ArrowRight size={16} aria-hidden /></div>
+                <div className="settings-row"><a href="/support" className="settings-row-label" style={{ textDecoration: "none" }}>Support</a><ArrowRight size={16} aria-hidden /></div>
+              </div>
+              <div style={{ textAlign: "center", padding: "16px 0", color: "var(--text-tertiary)", fontSize: 13 }}>OpenLedger . Free &amp; open-source . AGPL-3.0</div>
             </div>
-            <div>
-              <ShieldCheck size={16} aria-hidden />
-              <span>{lastSavedAt ? `Saved ${formatTime(lastSavedAt)}` : "Demo fallback"}</span>
-            </div>
-          </section>
-
-          {/* Live region for storage and status announcements */}
-          <div
-            className="storage-live-region"
-            aria-live="polite"
-            aria-atomic="true"
-            role="status"
-          >
-            {storageNotice ? (
-              <span className="storage-notice">{storageNotice}</span>
-            ) : null}
-          </div>
+          )}
         </section>
+      </div>
+      <nav className="bottom-tabs" aria-label="Navigation">
+        {TABS.map((tab) => {
+          const Icon = tabIcons[tab];
+          return (
+            <button key={tab} className={activeTab === tab ? "active" : ""}
+              onClick={() => setActiveTab(tab)} aria-current={activeTab === tab ? "page" : undefined}>
+              <Icon aria-hidden /><span>{tab}</span>
+            </button>
+          );
+        })}
+      </nav>
+      <div className="storage-live-region" aria-live="polite" aria-atomic="true" role="status">
+        {storageNotice ? <span className="storage-notice">{storageNotice}</span> : null}
       </div>
     </main>
   );
 
   function TransactionTable({ selectedAccount }: { selectedAccount: Account }) {
-    const rows = transactionsForAccount.length > 0 ? transactionsForAccount : transactions.slice(0, 5);
-
+    const rows = transactionsForAccount.length > 0 ? transactionsForAccount : transactions.slice(0, 20);
+    if (rows.length === 0) return null;
     return (
-      <div className="transaction-table">
-        <div className="table-head">
-          <span>Date</span>
-          <span>Description</span>
-          <span>Category</span>
-          <span>Account</span>
-          <span>Amount</span>
-          <span>Actions</span>
-        </div>
+      <div className="tx-table">
         {rows.map((transaction) => (
-          <div className="table-row" key={transaction.id}>
-            <span>{formatDate(transaction.date)}</span>
-            <strong>{transaction.description}</strong>
-            <span>{transaction.category}</span>
-            <span>{accountsWithBalances.find((account) => account.id === transaction.accountId)?.name ?? selectedAccount.name}</span>
-            <em className={transaction.amount < 0 ? "negative" : "positive"}>{currency.format(transaction.amount)}</em>
-            <span className="row-actions">
-              <button onClick={() => editTransaction(transaction)} aria-label={`Edit ${transaction.description}`}>
-                <Pencil size={14} aria-hidden />
-              </button>
-              <button onClick={() => duplicateTransaction(transaction)} aria-label={`Duplicate ${transaction.description}`}>
-                <Copy size={14} aria-hidden />
-              </button>
-              <button onClick={() => deleteTransaction(transaction)} aria-label={`Delete ${transaction.description}`}>
-                <Trash2 size={14} aria-hidden />
-              </button>
-            </span>
+          <div className="tx-row" key={transaction.id}>
+            <div className="tx-icon"><ReceiptText size={18} aria-hidden /></div>
+            <div className="tx-info">
+              <div className="tx-desc">{transaction.description}</div>
+              <div className="tx-meta">
+                <span>{formatDate(transaction.date)}</span> <span>. </span>
+                <span>{transaction.category}</span> <span>. </span>
+                <span>{accountsWithBalances.find((a) => a.id === transaction.accountId)?.name ?? selectedAccount.name}</span>
+              </div>
+            </div>
+            <div className="tx-actions">
+              <button onClick={() => editTransaction(transaction)} aria-label={"Edit " + transaction.description} className="tx-action-btn" title="Edit"><Pencil size={15} /></button>
+              <button onClick={() => duplicateTransaction(transaction)} aria-label={"Duplicate " + transaction.description} className="tx-action-btn" title="Duplicate"><Copy size={15} /></button>
+              <button onClick={() => deleteTransaction(transaction)} aria-label={"Delete " + transaction.description} className="tx-action-btn danger" title="Delete"><Trash2 size={15} /></button>
+            </div>
+            <span className={"recent-amount " + (transaction.amount > 0 ? "positive" : "negative")} style={{ textAlign: "right", minWidth: 90 }}>{currency.format(transaction.amount)}</span>
           </div>
         ))}
       </div>
@@ -1140,34 +874,90 @@ export default function Home() {
   }
 }
 
-function Panel({
-  title,
-  action,
-  control,
-  className = "",
-  children,
-}: {
-  title: string;
-  action?: string;
-  control?: React.ReactNode;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={`panel ${className}`}>
-      <header className="panel-header">
-        <h2>{title}</h2>
-        {control}
-      </header>
-      <div className="panel-body">{children}</div>
-      {action ? (
-        <button className="panel-action">
-          {action}
-          <ArrowRight size={14} aria-hidden />
-        </button>
-      ) : null}
-    </section>
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${value}T12:00:00`));
+}
+
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function buildMonthOptions(transactions: typeof ledgerData.transactions, snapshots: MonthlySnapshot[]) {
+  const known = new Map(snapshots.map((snapshot) => [snapshot.month, snapshot.label]));
+  transactions.forEach((transaction) => {
+    const month = transaction.date.slice(0, 7);
+    if (!known.has(month)) known.set(month, monthLabel(month));
+  });
+
+  return [...known.entries()]
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([value, label]) => ({ value, label }));
+}
+
+function buildSnapshot(month: string, transactions: typeof ledgerData.transactions, fallback: MonthlySnapshot): MonthlySnapshot {
+  const monthTransactions = transactions.filter((transaction) => transaction.date.startsWith(month));
+  if (
+    monthTransactions.length === 0 ||
+    !monthTransactions.some((transaction) => transaction.source === "csv" || transaction.source === "manual")
+  ) {
+    return fallback;
+  }
+
+  const income = sumWhere(monthTransactions, (transaction) => transaction.amount > 0);
+  const essential = sumWhere(monthTransactions, (transaction) =>
+    ["Groceries", "Rent", "Utilities", "Transport", "Health"].includes(transaction.category),
   );
+  const optional = sumWhere(monthTransactions, (transaction) =>
+    transaction.amount < 0 && ["Food delivery", "Shopping", "Misc", "Food & Drink"].includes(transaction.category),
+  );
+  const recurring = sumWhere(monthTransactions, (transaction) =>
+    ["Subscriptions", "Rent", "Utilities"].includes(transaction.category),
+  );
+  const debt = sumWhere(monthTransactions, (transaction) => transaction.category === "Debt");
+  const savingsMovement = income + essential + optional + recurring + debt;
+  const largest = Math.max(1, ...[income, essential, optional, recurring, savingsMovement, debt].map((value) => Math.abs(value)));
+
+  return {
+    month,
+    label: monthLabel(month),
+    daysLeft: fallback.month === month ? fallback.daysLeft : 0,
+    metrics: [
+      { id: "income", label: "Income", amount: income, ratio: ratio(income, largest), tone: "sage" },
+      { id: "essential", label: "Essential spending", amount: essential, ratio: ratio(essential, largest), tone: "quiet" },
+      { id: "optional", label: "Optional spending", amount: optional, ratio: ratio(optional, largest), tone: "quiet" },
+      { id: "recurring", label: "Recurring obligations", amount: recurring, ratio: ratio(recurring, largest), tone: "quiet" },
+      { id: "savings", label: "Savings movement", amount: savingsMovement, ratio: ratio(savingsMovement, largest), tone: "sage" },
+      { id: "debt", label: "Debt progress", amount: debt, ratio: ratio(debt, largest), tone: "amber" },
+    ],
+  };
+}
+
+function sumWhere(transactions: typeof ledgerData.transactions, predicate: (transaction: typeof ledgerData.transactions[number]) => boolean) {
+  return transactions.filter(predicate).reduce((total, transaction) => total + transaction.amount, 0);
+}
+
+function ratio(value: number, largest: number) {
+  return Math.max(0.18, Math.min(1, Math.abs(value) / largest));
+}
+
+function monthLabel(month: string) {
+  return new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric" }).format(new Date(`${month}-01T12:00:00`));
+}
+
+function normalizeAccountKind(kind: AccountKind): AccountKind {
+  return kind === "credit" ? "credit-card" : kind;
+}
+
+function accountKindLabel(kind: AccountKind) {
+  if (kind === "crypto") return "Investment";
+  return accountKindOptions.find((item) => item.value === normalizeAccountKind(kind))?.label ?? "Account";
 }
 
 function CsvImportPreview({
@@ -1281,6 +1071,8 @@ function CsvImportPreview({
   );
 }
 
+
+
 function ManualTransactionForm({
   values,
   accounts,
@@ -1359,6 +1151,8 @@ function ManualTransactionForm({
     </div>
   );
 }
+
+
 
 function AccountManagement({
   values,
@@ -1444,178 +1238,4 @@ function AccountManagement({
   );
 }
 
-function AccountRow({ account, selected, onSelect }: { account: Account; selected: boolean; onSelect: () => void }) {
-  const Icon = accountIcons[account.kind];
 
-  return (
-    <button className={selected ? "account-row selected" : "account-row"} onClick={onSelect}>
-      <span className="line-icon">
-        <Icon size={17} aria-hidden />
-      </span>
-      <span>
-        <strong>{account.name}</strong>
-        <small>{account.subtitle}</small>
-      </span>
-      <em className={account.balance < 0 ? "negative" : "positive"}>{currency.format(account.balance)}</em>
-    </button>
-  );
-}
-
-function PatternButton({
-  pattern,
-  selected,
-  onSelect,
-}: {
-  pattern: CategoryPattern;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button className={selected ? `insight-row ${pattern.tone} selected` : `insight-row ${pattern.tone}`} onClick={onSelect}>
-      <span className="insight-icon">
-        <Tag size={18} aria-hidden />
-      </span>
-      <span>
-        <strong>{pattern.title}</strong>
-        <small>{pattern.delta}</small>
-      </span>
-      <ChevronRight size={17} aria-hidden />
-    </button>
-  );
-}
-
-function LifeCostMap({ events }: { events: LifeCostEvent[] }) {
-  return (
-    <div className="life-map">
-      <div className="map-months">
-        {events.map((event) => (
-          <span key={`${event.id}-month`}>{event.month}</span>
-        ))}
-      </div>
-      <div className="map-line">
-        {events.map((event) => (
-          <span key={`${event.id}-dot`} className={event.kind} />
-        ))}
-      </div>
-      <div className="map-labels">
-        {events.map((event) => (
-          <div key={event.id}>
-            <strong>{event.label}</strong>
-            <span>{event.date}</span>
-          </div>
-        ))}
-      </div>
-      <div className="map-legend">
-        <span><i className="income" />Income</span>
-        <span><i className="large-expense" />Large expense</span>
-        <span><i className="recurring" />Recurring</span>
-      </div>
-    </div>
-  );
-}
-
-function Note({ date, text }: { date: string; text: string }) {
-  return (
-    <div className="note-row">
-      <span>{date}</span>
-      <p>{text}</p>
-      <FileText size={16} aria-hidden />
-    </div>
-  );
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function buildMonthOptions(transactions: typeof ledgerData.transactions, snapshots: MonthlySnapshot[]) {
-  const known = new Map(snapshots.map((snapshot) => [snapshot.month, snapshot.label]));
-  transactions.forEach((transaction) => {
-    const month = transaction.date.slice(0, 7);
-    if (!known.has(month)) known.set(month, monthLabel(month));
-  });
-
-  return [...known.entries()]
-    .sort(([a], [b]) => b.localeCompare(a))
-    .map(([value, label]) => ({ value, label }));
-}
-
-function buildSnapshot(month: string, transactions: typeof ledgerData.transactions, fallback: MonthlySnapshot): MonthlySnapshot {
-  const monthTransactions = transactions.filter((transaction) => transaction.date.startsWith(month));
-  if (
-    monthTransactions.length === 0 ||
-    !monthTransactions.some((transaction) => transaction.source === "csv" || transaction.source === "manual")
-  ) {
-    return fallback;
-  }
-
-  const income = sumWhere(monthTransactions, (transaction) => transaction.amount > 0);
-  const essential = sumWhere(monthTransactions, (transaction) =>
-    ["Groceries", "Rent", "Utilities", "Transport", "Health"].includes(transaction.category),
-  );
-  const optional = sumWhere(monthTransactions, (transaction) =>
-    transaction.amount < 0 && ["Food delivery", "Shopping", "Misc", "Food & Drink"].includes(transaction.category),
-  );
-  const recurring = sumWhere(monthTransactions, (transaction) =>
-    ["Subscriptions", "Rent", "Utilities"].includes(transaction.category),
-  );
-  const debt = sumWhere(monthTransactions, (transaction) => transaction.category === "Debt");
-  const savingsMovement = income + essential + optional + recurring + debt;
-  const largest = Math.max(1, ...[income, essential, optional, recurring, savingsMovement, debt].map((value) => Math.abs(value)));
-
-  return {
-    month,
-    label: monthLabel(month),
-    daysLeft: fallback.month === month ? fallback.daysLeft : 0,
-    metrics: [
-      { id: "income", label: "Income", amount: income, ratio: ratio(income, largest), tone: "sage" },
-      { id: "essential", label: "Essential spending", amount: essential, ratio: ratio(essential, largest), tone: "quiet" },
-      { id: "optional", label: "Optional spending", amount: optional, ratio: ratio(optional, largest), tone: "quiet" },
-      { id: "recurring", label: "Recurring obligations", amount: recurring, ratio: ratio(recurring, largest), tone: "quiet" },
-      { id: "savings", label: "Savings movement", amount: savingsMovement, ratio: ratio(savingsMovement, largest), tone: "sage" },
-      { id: "debt", label: "Debt progress", amount: debt, ratio: ratio(debt, largest), tone: "amber" },
-    ],
-  };
-}
-
-function sumWhere(transactions: typeof ledgerData.transactions, predicate: (transaction: typeof ledgerData.transactions[number]) => boolean) {
-  return transactions.filter(predicate).reduce((total, transaction) => total + transaction.amount, 0);
-}
-
-function ratio(value: number, largest: number) {
-  return Math.max(0.18, Math.min(1, Math.abs(value) / largest));
-}
-
-function monthLabel(month: string) {
-  return new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric" }).format(new Date(`${month}-01T12:00:00`));
-}
-
-function normalizeAccountKind(kind: AccountKind): AccountKind {
-  return kind === "credit" ? "credit-card" : kind;
-}
-
-function accountKindLabel(kind: AccountKind) {
-  if (kind === "crypto") return "Investment";
-  return accountKindOptions.find((item) => item.value === normalizeAccountKind(kind))?.label ?? "Account";
-}
