@@ -1,10 +1,10 @@
 {
   "name": "openledger",
   "version": "0.3.0",
-  "description": "A private, local-first personal finance ledger for calm CSV-based tracking.",
+  "description": "A private, editorial personal finance ledger.",
   "private": true,
   "license": "AGPL-3.0-or-later",
-  "homepage": "https://quietledger.vercel.app",
+  "homepage": "https://openledger-two.vercel.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sparshsam/openledger.git"
