@@ -97,7 +97,7 @@ button, .btn, .pill {
 /* ══ Main layout ══ */
 main { max-width: 1280px; margin: 0 auto; padding: var(--space-4xl) 0 var(--space-3xl); }
 main > * { padding-left: var(--space-lg); padding-right: var(--space-lg); }
-main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; }
+main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; padding-left: 0; padding-right: 0; }
 @media (max-width: 600px) { main { padding: var(--space-2xl) var(--space-md); } }
 
 /* ══ Hero ══ */
@@ -168,11 +168,11 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; }
 
 /* ══ Settings sections (expandable) ══ */
 .settings-section { margin-bottom: var(--space-lg); width: 100%; }
-.settings-section summary { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-tertiary); cursor: pointer; padding: var(--space-md) 0; list-style: none; display: flex; align-items: center; gap: var(--space-sm); border-bottom: 1px solid var(--border); }
+.settings-section summary { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-tertiary); cursor: pointer; padding: var(--space-md) var(--space-lg); list-style: none; display: flex; align-items: center; gap: var(--space-sm); border-bottom: 1px solid var(--border); }
 .settings-section summary::-webkit-details-marker { display: none; }
 .settings-section summary:hover { color: var(--text); }
 .settings-section[open] { width: 100%; } .settings-section[open] summary { color: var(--text); border-bottom-color: transparent; }
-.settings-section-content { padding: var(--space-md) 0; }
+.settings-section-content { padding: var(--space-sm) 0 var(--space-md); }
 
 /* ══ Settings — panel content (consistent across all sections) ══ */
 .settings-panel-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-md) var(--space-lg); }
