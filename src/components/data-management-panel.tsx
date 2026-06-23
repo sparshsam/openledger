@@ -97,70 +97,77 @@ export function DataManagementPanel({ user, ledgerData, onResetToDemo, onClearLo
   };
 
   return (
-    <div className="settings-inline-section">
-      <p className="gentle-help" style={{ marginBottom: 12, lineHeight: 1.5 }}>
-        Download your full ledger. All data is exported from your browser — nothing is sent to a server.
-      </p>
-      <div className="settings-inline-actions">
-        <button onClick={handleExportJson} className="backup-btn">
-          <FileText size={14} aria-hidden />
-          Export JSON
-        </button>
-        <button onClick={handleExportCsv} className="backup-btn">
-          <FileText size={14} aria-hidden />
-          Export CSV
-        </button>
-      </div>
-
-      <div style={{ height: 'var(--space-lg)' }} />
-
-      <p className="gentle-help" style={{ marginBottom: 12, lineHeight: 1.5 }}>
-        Import a previous JSON backup or reset to the demo ledger.
-      </p>
-      <div className="settings-inline-actions">
-        <button onClick={() => jsonImportRef.current?.click()} className="backup-btn">
-          <FileUp size={14} aria-hidden />
-          Import JSON
-        </button>
-        <button onClick={onResetToDemo} className="backup-btn">
-          <Archive size={14} aria-hidden />
-          Reset to demo
-        </button>
-        <input ref={jsonImportRef} type="file" accept=".json,application/json" style={{ display: "none" }} />
-      </div>
-
-      <div style={{ height: 'var(--space-lg)' }} />
-
-      <p className="gentle-help" style={{ marginBottom: 12, lineHeight: 1.5 }}>
-        Manage your local and cloud data.
-      </p>
-      <div className="settings-inline-actions">
-        <button className="btn-danger" onClick={onClearLocal}>
-          <Trash2 size={14} aria-hidden />
-          Clear local data
-        </button>
-
-        {user ? (
-          <button
-            className="btn-danger"
-            onClick={handleDeleteAllCloudData}
-            disabled={deleting}
-          >
-            <Trash2 size={14} aria-hidden />
-            {deleting ? "Deleting..." : "Delete cloud data"}
+    <div className="settings-panel-content">
+      <div className="settings-panel-section">
+        <h4 className="settings-panel-heading">Export</h4>
+        <p className="gentle-help" style={{ marginBottom: 12 }}>
+          Download your full ledger. All data is exported from your browser — nothing is sent to a server.
+        </p>
+        <div className="settings-panel-actions">
+          <button onClick={handleExportJson} className="settings-panel-btn">
+            <FileText size={14} aria-hidden />
+            Export JSON
           </button>
+          <button onClick={handleExportCsv} className="settings-panel-btn">
+            <FileText size={14} aria-hidden />
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-panel-divider" />
+
+      <div className="settings-panel-section">
+        <h4 className="settings-panel-heading">Restore &amp; Reset</h4>
+        <p className="gentle-help" style={{ marginBottom: 12 }}>
+          Import a previous JSON backup or reset to the demo ledger.
+        </p>
+        <div className="settings-panel-actions">
+          <button onClick={() => jsonImportRef.current?.click()} className="settings-panel-btn">
+            <FileUp size={14} aria-hidden />
+            Import JSON
+          </button>
+          <button onClick={onResetToDemo} className="settings-panel-btn">
+            <Archive size={14} aria-hidden />
+            Reset to demo
+          </button>
+          <input ref={jsonImportRef} type="file" accept=".json,application/json" style={{ display: "none" }} />
+        </div>
+      </div>
+
+      <div className="settings-panel-divider" />
+
+      <div className="settings-panel-section">
+        <h4 className="settings-panel-heading">Delete Data</h4>
+
+        <div className="settings-panel-actions">
+          <button className="settings-panel-btn settings-panel-btn-danger" onClick={onClearLocal}>
+            <Trash2 size={14} aria-hidden />
+            Clear local data
+          </button>
+
+          {user ? (
+            <button
+              className="settings-panel-btn settings-panel-btn-danger"
+              onClick={handleDeleteAllCloudData}
+              disabled={deleting}
+            >
+              <Trash2 size={14} aria-hidden />
+              {deleting ? "Deleting..." : "Delete cloud data"}
+            </button>
+          ) : null}
+        </div>
+
+        {cloudStatus ? (
+          <p className="backup-notice" style={{ marginTop: 10 }}>{cloudStatus}</p>
+        ) : null}
+
+        {!user ? (
+          <p className="gentle-help" style={{ marginTop: 10 }}>
+            Sign in to manage cloud data.
+          </p>
         ) : null}
       </div>
-
-      {cloudStatus ? (
-        <p className="backup-notice" style={{ marginTop: 10 }}>{cloudStatus}</p>
-      ) : null}
-
-      {!user ? (
-        <p className="gentle-help" style={{ marginTop: 10 }}>
-          Sign in to manage cloud data.
-        </p>
-      ) : null}
     </div>
   );
 }

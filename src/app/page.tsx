@@ -780,11 +780,15 @@ export default function Home() {
             <details className="settings-section">
               <summary>Accounts</summary>
               <div className="settings-section-content">
-                <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Manage your ledger accounts.</p>
-                <AccountManagement values={accountForm} accounts={accountsWithBalances} error={accountError}
-                  onChange={setAccountForm} onSave={saveAccount}
-                  onCancel={() => { setAccountForm({ name: "", kind: "chequing", subtitle: "", balance: "" }); setAccountError(""); }}
-                  onEdit={editAccount} onArchive={archiveAccount} />
+                <div className="settings-panel-content">
+                  <div className="settings-panel-section">
+                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Manage your ledger accounts.</p>
+                    <AccountManagement values={accountForm} accounts={accountsWithBalances} error={accountError}
+                      onChange={setAccountForm} onSave={saveAccount}
+                      onCancel={() => { setAccountForm({ name: "", kind: "chequing", subtitle: "", balance: "" }); setAccountError(""); }}
+                      onEdit={editAccount} onArchive={archiveAccount} />
+                  </div>
+                </div>
               </div>
             </details>
 
@@ -804,11 +808,15 @@ export default function Home() {
             <details className="settings-section">
               <summary>Legal</summary>
               <div className="settings-section-content">
-                <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Policies and terms.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <a href="/privacy" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Privacy Policy</a>
-                  <a href="/terms" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Terms of Service</a>
-                  <a href="/support" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Support</a>
+                <div className="settings-panel-content">
+                  <div className="settings-panel-section">
+                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Policies and terms.</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <a href="/privacy" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Privacy Policy</a>
+                      <a href="/terms" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Terms of Service</a>
+                      <a href="/support" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Support</a>
+                    </div>
+                  </div>
                 </div>
               </div>
             </details>

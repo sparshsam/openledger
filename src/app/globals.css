@@ -173,6 +173,19 @@ main.narrow, .narrow { max-width: 720px; margin: 0 auto; }
 .settings-section[open] { width: 100%; } .settings-section[open] summary { color: var(--text); border-bottom-color: transparent; }
 .settings-section-content { padding: var(--space-md) 0; }
 
+/* ══ Settings — panel content (consistent across all sections) ══ */
+.settings-panel-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-md) var(--space-lg); }
+.settings-panel-section { margin-bottom: var(--space-lg); }
+.settings-panel-section:last-child { margin-bottom: 0; }
+.settings-panel-heading { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: var(--space-sm); color: var(--text); }
+.settings-panel-divider { border: none; border-top: 1px solid var(--border); margin: var(--space-md) 0; }
+.settings-panel-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+.settings-panel-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 12px; font-weight: 600; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-secondary); color: var(--text); cursor: pointer; }
+.settings-panel-btn:hover { background: #E5DFD0; }
+.settings-panel-btn-danger { background: transparent; border-color: rgba(196,74,74,0.3); color: var(--negative); }
+.settings-panel-btn-danger:hover { background: rgba(196,74,74,0.1); }
+.backup-notice { font-size: 13px; color: var(--accent); }
+
 /* ══ Sheet/modal overlay ══ */
 .sheet-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(26,22,18,0.3); display: flex; align-items: flex-end; justify-content: center; }
 .sheet { width: 100%; max-width: 520px; max-height: 80vh; background: var(--surface); border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: var(--space-lg); overflow-y: auto; box-shadow: var(--shadow); }
@@ -216,16 +229,6 @@ main.narrow, .narrow { max-width: 720px; margin: 0 auto; }
 .managed-account .tx-action-btn { padding: 6px 12px; font-size: 11px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; min-height: 32px; }
 .managed-account .tx-action-btn:hover { background: var(--surface-secondary); }
 .managed-account .tx-action-btn.danger:hover { color: var(--negative); border-color: rgba(196,74,74,0.3); }
-/* ══ Settings — inline sections ══ */
-.settings-inline-section > * + * { margin-top: var(--space-md); }
-.settings-inline-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
-.settings-inline-actions button { padding: 8px 18px; font-size: 12px; border-radius: 999px; font-weight: 600; cursor: pointer; }
-.btn-danger { background: transparent; border: 1px solid rgba(196,74,74,0.3); color: var(--negative); }
-.btn-danger:hover { background: rgba(196,74,74,0.1); }
-.backup-notice { font-size: 13px; color: var(--accent); }
-.backup-btn { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); }
-.backup-btn:hover { background: #E5DFD0; }
-
 /* ══ Auth — inline ══ */
 .auth-section { margin-top: var(--space-lg); }
 

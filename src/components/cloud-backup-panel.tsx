@@ -100,36 +100,38 @@ export function CloudBackupPanel({ user, ledgerData, onRestore }: Props) {
     }).format(new Date(ts));
 
   return (
-    <div>
-      {backup ? (
-        <p className="gentle-help" style={{ marginBottom: 12 }}>
-          Last backup: <strong>{formatTime(backup.created_at)}</strong>
-        </p>
-      ) : (
-        <p className="gentle-help" style={{ marginBottom: 12 }}>No cloud backup yet.</p>
-      )}
-
-      <div className="settings-inline-actions">
-        <button className="backup-btn" onClick={handleBackup} disabled={loading}>
-          {loading ? "Working..." : "Back up to cloud"}
-        </button>
-
+    <div className="settings-panel-content">
+      <div className="settings-panel-section">
         {backup ? (
-          <>
-            <button className="btn-danger" onClick={handleRestorePreview} disabled={loading}>
-              Preview & restore
-            </button>
-            <button className="btn-danger" onClick={handleDelete} disabled={loading}>
-              Delete cloud backup
-            </button>
-          </>
-        ) : null}
+          <p className="gentle-help" style={{ marginBottom: 12 }}>
+            Last backup: <strong>{formatTime(backup.created_at)}</strong>
+          </p>
+        ) : (
+          <p className="gentle-help" style={{ marginBottom: 12 }}>No cloud backup yet.</p>
+        )}
+
+        <div className="settings-panel-actions">
+          <button className="settings-panel-btn" onClick={handleBackup} disabled={loading}>
+            {loading ? "Working..." : "Back up to cloud"}
+          </button>
+
+          {backup ? (
+            <>
+              <button className="settings-panel-btn settings-panel-btn-danger" onClick={handleRestorePreview} disabled={loading}>
+                Preview & restore
+              </button>
+              <button className="settings-panel-btn settings-panel-btn-danger" onClick={handleDelete} disabled={loading}>
+                Delete cloud backup
+              </button>
+            </>
+          ) : null}
+        </div>
+
+        {status ? <p className="backup-notice" style={{ marginTop: 10 }}>{status}</p> : null}
       </div>
 
-      {status ? <p className="backup-notice" style={{ marginTop: 10 }}>{status}</p> : null}
-
       {showConfirm && preview ? (
-        <div style={{ marginTop: 16, padding: 'var(--space-md)', border: '1px solid var(--border)', borderRadius: 8 }}>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 4 }}>
           <h4 style={{ fontWeight: 700, marginBottom: 8 }}>Restore from cloud backup?</h4>
           <p className="gentle-help" style={{ marginBottom: 8 }}>This will replace your current local ledger data.</p>
           <ul style={{ marginBottom: 12, paddingLeft: 20, fontSize: 13, color: 'var(--text-secondary)' }}>
@@ -138,9 +140,9 @@ export function CloudBackupPanel({ user, ledgerData, onRestore }: Props) {
             <li>{preview.budgets?.length ?? 0} budgets</li>
             <li>{preview.goals?.length ?? 0} goals</li>
           </ul>
-          <div className="settings-inline-actions">
-            <button className="backup-btn" onClick={handleConfirmRestore}>Yes, restore</button>
-            <button className="btn-danger" onClick={() => { setShowConfirm(false); setPreview(null); }}>Cancel</button>
+          <div className="settings-panel-actions">
+            <button className="settings-panel-btn" onClick={handleConfirmRestore}>Yes, restore</button>
+            <button className="settings-panel-btn settings-panel-btn-danger" onClick={() => { setShowConfirm(false); setPreview(null); }}>Cancel</button>
           </div>
         </div>
       ) : null}
