@@ -2,7 +2,21 @@
 
 ## Product Identity
 
-OpenLedger is a private, local-first finance tool. This is NOT a fintech platform — it is a personal budgeting application with no backend, no accounts, and no cloud dependency.
+OpenLedger is a private, local-first finance tool. Warm ledger aesthetic, editorial UX. Not a fintech platform — a personal budgeting application with no backend, no accounts, and no cloud dependency.
+
+## Current Release
+
+v0.8.8 — Goals button alignment fix. Live at https://openledger-two.vercel.app
+
+## Build History (v0.8.x Quick Reference)
+
+| Version | What |
+|---------|------|
+| v0.8.4 | Visual QA — goals panel rewrite (editorial cards, modal form, pill actions) |
+| v0.8.5 | Removed duplicate TransactionTable, fixed Settings width, fixed Goals button icon |
+| v0.8.6 | Button layout — single creation path per page, descriptive subtext, "Save" not "Create milestone" |
+| v0.8.7 | Button label order — text before icon everywhere (Record transaction +, New Goal +) |
+| v0.8.8 | Goals "New Goal +" button nowrap + CLAUDE.md updated |
 
 ## Rules
 
@@ -10,7 +24,8 @@ OpenLedger is a private, local-first finance tool. This is NOT a fintech platfor
 2. **No tracking.** No analytics, no telemetry, no third-party scripts.
 3. **Privacy.** All data stays on the user's device.
 4. **Calm UX.** Avoid financial gamification, urgency patterns, or manipulative UI.
-5. **Branch naming:** \`feat/*\`, \`fix/*\`, \`docs/*\`, \`refactor/*\`, \`chore/*\`.
+5. **Design system.** OpenProof Design Playbook — editorial layout, pill buttons, accent color #8B6534.
+6. **Branch naming:** `feat/*`, `fix/*`, `docs/*`, `refactor/*`, `chore/*`.
 
 ## Ecosystem Standards
 
