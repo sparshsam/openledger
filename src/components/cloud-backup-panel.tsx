@@ -39,9 +39,7 @@ export function CloudBackupPanel({ user, ledgerData, onRestore }: Props) {
 
   if (!user) {
     return (
-      <div className="cloud-backup-guest">
-        <p className="gentle-help">Sign in to back up your ledger to the cloud.</p>
-      </div>
+      <p className="gentle-help">Sign in to back up your ledger to the cloud.</p>
     );
   }
 
@@ -102,63 +100,49 @@ export function CloudBackupPanel({ user, ledgerData, onRestore }: Props) {
     }).format(new Date(ts));
 
   return (
-    <div className="cloud-backup-panel">
-      <div className="backup-status">
-        <span className="status-dot online" />
-        <strong>Cloud-ready</strong>
-        <span className="auth-badge">Signed in</span>
-      </div>
-
-      {backup ? (
-        <p className="backup-timestamp">
-          Last backup: <strong>{formatTime(backup.created_at)}</strong>
-        </p>
-      ) : (
-        <p className="gentle-help">No cloud backup yet.</p>
-      )}
-
-      <div className="backup-actions">
-        <button className="backup-btn" onClick={handleBackup} disabled={loading}>
-          {loading ? "Working..." : "Back up to cloud"}
-        </button>
-
+    <div>
+      <div className="settings-panel-section">
         {backup ? (
-          <>
-            <button className="restore-btn" onClick={handleRestorePreview} disabled={loading}>
-              Preview & restore
-            </button>
-            <button className="delete-btn" onClick={handleDelete} disabled={loading}>
-              Delete cloud backup
-            </button>
-          </>
-        ) : null}
-      </div>
+          <p className="gentle-help" style={{ marginBottom: 12 }}>
+            Last backup: <strong>{formatTime(backup.created_at)}</strong>
+          </p>
+        ) : (
+          <p className="gentle-help" style={{ marginBottom: 12 }}>No cloud backup yet.</p>
+        )}
 
-      {status ? <p className="backup-notice">{status}</p> : null}
+        <div className="settings-panel-actions">
+          <button className="settings-panel-btn" onClick={handleBackup} disabled={loading}>
+            {loading ? "Working..." : "Back up to cloud"}
+          </button>
+
+          {backup ? (
+            <>
+              <button className="settings-panel-btn settings-panel-btn-danger" onClick={handleRestorePreview} disabled={loading}>
+                Preview & restore
+              </button>
+              <button className="settings-panel-btn settings-panel-btn-danger" onClick={handleDelete} disabled={loading}>
+                Delete cloud backup
+              </button>
+            </>
+          ) : null}
+        </div>
+
+        {status ? <p className="backup-notice" style={{ marginTop: 10 }}>{status}</p> : null}
+      </div>
 
       {showConfirm && preview ? (
-        <div className="restore-confirm">
-          <h4>Restore from cloud backup?</h4>
-          <p>This will replace your current local ledger data.</p>
-          <ul>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 4 }}>
+          <h4 style={{ fontWeight: 700, marginBottom: 8 }}>Restore from cloud backup?</h4>
+          <p className="gentle-help" style={{ marginBottom: 8 }}>This will replace your current local ledger data.</p>
+          <ul style={{ marginBottom: 12, paddingLeft: 20, fontSize: 13, color: 'var(--text-secondary)' }}>
             <li>{preview.accounts.length} accounts</li>
             <li>{preview.transactions.length} transactions</li>
             <li>{preview.budgets?.length ?? 0} budgets</li>
             <li>{preview.goals?.length ?? 0} goals</li>
           </ul>
-          <div className="confirm-actions">
-            <button className="backup-btn" onClick={handleConfirmRestore}>
-              Yes, restore
-            </button>
-            <button
-              className="delete-btn"
-              onClick={() => {
-                setShowConfirm(false);
-                setPreview(null);
-              }}
-            >
-              Cancel
-            </button>
+          <div className="settings-panel-actions">
+            <button className="settings-panel-btn" onClick={handleConfirmRestore}>Yes, restore</button>
+            <button className="settings-panel-btn settings-panel-btn-danger" onClick={() => { setShowConfirm(false); setPreview(null); }}>Cancel</button>
           </div>
         </div>
       ) : null}

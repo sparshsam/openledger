@@ -4,7 +4,6 @@
    ══════════════════════════════════════════════ */
 
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Stack+Sans+Notch:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Brand palette — derived from app icon */
@@ -96,8 +95,9 @@ button, .btn, .pill {
 @media (max-width: 600px) { .navbar-nav button, .navbar-nav a { font-size: 12px; padding: 6px 12px; } }
 
 /* ══ Main layout ══ */
-main { max-width: 1280px; margin: 0 auto; padding: var(--space-4xl) var(--space-lg) var(--space-3xl); }
-main.narrow { max-width: 720px; }
+main { max-width: 1280px; margin: 0 auto; padding: var(--space-4xl) 0 var(--space-3xl); width: 100%; }
+main > * { padding-left: var(--space-lg); padding-right: var(--space-lg); }
+main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; padding-left: 0; padding-right: 0; }
 @media (max-width: 600px) { main { padding: var(--space-2xl) var(--space-md); } }
 
 /* ══ Hero ══ */
@@ -168,11 +168,24 @@ main.narrow { max-width: 720px; }
 
 /* ══ Settings sections (expandable) ══ */
 .settings-section { margin-bottom: var(--space-lg); width: 100%; }
-.settings-section summary { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-tertiary); cursor: pointer; padding: var(--space-md) 0; list-style: none; display: flex; align-items: center; gap: var(--space-sm); border-bottom: 1px solid var(--border); }
+.settings-section summary { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-tertiary); cursor: pointer; padding: var(--space-md) var(--space-lg); list-style: none; display: flex; align-items: center; gap: var(--space-sm); border-bottom: 1px solid var(--border); }
 .settings-section summary::-webkit-details-marker { display: none; }
 .settings-section summary:hover { color: var(--text); }
 .settings-section[open] { width: 100%; } .settings-section[open] summary { color: var(--text); border-bottom-color: transparent; }
-.settings-section-content { padding: var(--space-md) 0; }
+.settings-section-content { padding: var(--space-sm) 0 var(--space-md); }
+
+/* ══ Settings — panel content (consistent across all sections) ══ */
+.settings-panel-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-md) var(--space-lg); }
+.settings-panel-section { margin-bottom: var(--space-lg); }
+.settings-panel-section:last-child { margin-bottom: 0; }
+.settings-panel-heading { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: var(--space-sm); color: var(--text); }
+.settings-panel-divider { border: none; border-top: 1px solid var(--border); margin: var(--space-md) 0; }
+.settings-panel-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+.settings-panel-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 12px; font-weight: 600; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-secondary); color: var(--text); cursor: pointer; }
+.settings-panel-btn:hover { background: #E5DFD0; }
+.settings-panel-btn-danger { background: transparent; border-color: rgba(196,74,74,0.3); color: var(--negative); }
+.settings-panel-btn-danger:hover { background: rgba(196,74,74,0.1); }
+.backup-notice { font-size: 13px; color: var(--accent); }
 
 /* ══ Sheet/modal overlay ══ */
 .sheet-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(26,22,18,0.3); display: flex; align-items: flex-end; justify-content: center; }
@@ -217,15 +230,8 @@ main.narrow { max-width: 720px; }
 .managed-account .tx-action-btn { padding: 6px 12px; font-size: 11px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; min-height: 32px; }
 .managed-account .tx-action-btn:hover { background: var(--surface-secondary); }
 .managed-account .tx-action-btn.danger:hover { color: var(--negative); border-color: rgba(196,74,74,0.3); }
-/* ══ Auth / cloud backup — inline ══ */
+/* ══ Auth — inline ══ */
 .auth-section { margin-top: var(--space-lg); }
-.cloud-backup-panel { margin-top: var(--space-md); }
-.backup-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
-.backup-actions button { padding: 8px 18px; font-size: 12px; }
-.backup-status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
-.backup-notice { font-size: 13px; color: var(--accent); }
-.restore-confirm { background: var(--surface-secondary); border-radius: var(--radius-sm); padding: var(--space-md); margin-top: var(--space-md); }
-.confirm-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
 
 /* ══ CSV import ══ */
 .csv-import { margin-top: var(--space-lg); }
@@ -242,14 +248,7 @@ main.narrow { max-width: 720px; }
 .preview-table { overflow-x: auto; }
 
 /* ══ Data management (Settings) ══ */
-.data-management-panel { margin-top: var(--space-md); }
-.data-management-section { margin-bottom: var(--space-lg); }
-.data-management-heading { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-sm); }
-.data-management-divider { border: none; border-top: 1px solid var(--border); margin: var(--space-md) 0; }
-.delete-option { display: flex; justify-content: space-between; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; }
-.delete-option strong { display: block; font-size: 14px; font-weight: 600; }
-.delete-option p { margin: 2px 0 0; font-size: 13px; color: var(--text-secondary); }
-.data-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+/* Uses shared .settings-inline-section and .settings-inline-actions */
 
 /* ══ Transaction table (TransactionsView component) ══ */
 .transactions-view { display: flex; flex-direction: column; gap: var(--space-lg); }
