@@ -4,7 +4,6 @@
    ══════════════════════════════════════════════ */
 
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Stack+Sans+Notch:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Brand palette — derived from app icon */
@@ -97,7 +96,7 @@ button, .btn, .pill {
 
 /* ══ Main layout ══ */
 main { max-width: 1280px; margin: 0 auto; padding: var(--space-4xl) var(--space-lg) var(--space-3xl); }
-main.narrow { max-width: 720px; }
+main.narrow, .narrow { max-width: 720px; margin: 0 auto; }
 @media (max-width: 600px) { main { padding: var(--space-2xl) var(--space-md); } }
 
 /* ══ Hero ══ */
@@ -217,15 +216,18 @@ main.narrow { max-width: 720px; }
 .managed-account .tx-action-btn { padding: 6px 12px; font-size: 11px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; min-height: 32px; }
 .managed-account .tx-action-btn:hover { background: var(--surface-secondary); }
 .managed-account .tx-action-btn.danger:hover { color: var(--negative); border-color: rgba(196,74,74,0.3); }
-/* ══ Auth / cloud backup — inline ══ */
-.auth-section { margin-top: var(--space-lg); }
-.cloud-backup-panel { margin-top: var(--space-md); }
-.backup-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
-.backup-actions button { padding: 8px 18px; font-size: 12px; }
-.backup-status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+/* ══ Settings — inline sections ══ */
+.settings-inline-section > * + * { margin-top: var(--space-md); }
+.settings-inline-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+.settings-inline-actions button { padding: 8px 18px; font-size: 12px; border-radius: 999px; font-weight: 600; cursor: pointer; }
+.btn-danger { background: transparent; border: 1px solid rgba(196,74,74,0.3); color: var(--negative); }
+.btn-danger:hover { background: rgba(196,74,74,0.1); }
 .backup-notice { font-size: 13px; color: var(--accent); }
-.restore-confirm { background: var(--surface-secondary); border-radius: var(--radius-sm); padding: var(--space-md); margin-top: var(--space-md); }
-.confirm-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
+.backup-btn { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); }
+.backup-btn:hover { background: #E5DFD0; }
+
+/* ══ Auth — inline ══ */
+.auth-section { margin-top: var(--space-lg); }
 
 /* ══ CSV import ══ */
 .csv-import { margin-top: var(--space-lg); }
@@ -242,14 +244,7 @@ main.narrow { max-width: 720px; }
 .preview-table { overflow-x: auto; }
 
 /* ══ Data management (Settings) ══ */
-.data-management-panel { margin-top: var(--space-md); }
-.data-management-section { margin-bottom: var(--space-lg); }
-.data-management-heading { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-sm); }
-.data-management-divider { border: none; border-top: 1px solid var(--border); margin: var(--space-md) 0; }
-.delete-option { display: flex; justify-content: space-between; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; }
-.delete-option strong { display: block; font-size: 14px; font-weight: 600; }
-.delete-option p { margin: 2px 0 0; font-size: 13px; color: var(--text-secondary); }
-.data-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+/* Uses shared .settings-inline-section and .settings-inline-actions */
 
 /* ══ Transaction table (TransactionsView component) ══ */
 .transactions-view { display: flex; flex-direction: column; gap: var(--space-lg); }

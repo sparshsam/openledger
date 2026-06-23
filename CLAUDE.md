@@ -5,9 +5,10 @@
 OpenLedger is a private, local-first finance tool for everyday budgeting and records.
 Built with Next.js + TypeScript. Formerly QuietLedger.
 
-Current Release: v0.8.8 — Goals button nowrap + lint fix (2026-06-23)
+Current Release: v0.8.9 — Settings panel consistency + release QA (2026-06-23)
 
 Releases:
+           v0.8.9 — Settings panel consistency, release QA, CSS @import fix
            v0.8.8 — Goals button alignment fix
            v0.8.7 — Button label order (text before icon)
            v0.8.6 — Button layout, single creation path
