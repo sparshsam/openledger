@@ -69,12 +69,8 @@ const currency = new Intl.NumberFormat("en-CA", {
   currency: "CAD",
 });
 
-const TABS = ["Home", "Transactions", "Budgets", "Goals", "Settings"] as const;
+const TABS = ["Ledger", "Transactions", "Goals", "Settings"] as const;
 type Tab = (typeof TABS)[number];
-
-const tabIcons: Record<string, typeof FileText> = {
-  Home: FileText, Transactions: ReceiptText, Budgets: PiggyBank, Goals: Sparkles, Settings,
-};
 
 const accountIcons: Record<AccountKind, typeof Banknote> = {
   chequing: WalletCards,
@@ -147,7 +143,7 @@ const csvFields: Array<{ field: CsvField; label: string; required?: boolean }> =
 export default function Home() {
   const { user, profile, loading: authLoading } = useAuth();
   const authMode = getAuthMode(user);
-  const [activeTab, setActiveTab] = useState<Tab>("Home");
+  const [activeTab, setActiveTab] = useState<Tab>("Ledger");
   const [selectedAccountId, setSelectedAccountId] = useState("chequing");
   const [selectedMonth, setSelectedMonth] = useState("2026-05");
   const [localOnly, setLocalOnly] = useState(true);
@@ -286,20 +282,24 @@ export default function Home() {
         budgets: demo.budgets,
         goals: demo.goals,
       });
-      setSelectedMonth("2026-06");
-      setStorageNotice("Screenshot demo mode active. Data is not saved.");
-      setHydrated(true);
+      setTimeout(() => {
+        setSelectedMonth("2026-06");
+        setStorageNotice("Screenshot demo mode active. Data is not saved.");
+        setHydrated(true);
+      }, 0);
       return;
     }
 
     const result = loadLedgerState(window.localStorage);
-    applyLedgerState(result.state);
-    setLastSavedAt(result.state.savedAt);
-    setStorageNotice(
-      result.warning ??
-        (result.source === "saved" ? "Local ledger restored from this browser." : "Demo ledger loaded. Changes will save locally."),
-    );
-    setHydrated(true);
+    setTimeout(() => {
+      applyLedgerState(result.state);
+      setLastSavedAt(result.state.savedAt);
+      setStorageNotice(
+        result.warning ??
+          (result.source === "saved" ? "Local ledger restored from this browser." : "Demo ledger loaded. Changes will save locally."),
+      );
+      setHydrated(true);
+    }, 0);
   }, []);
 
   useEffect(() => {
@@ -392,7 +392,7 @@ export default function Home() {
       }
       nextSaveNoticeRef.current = result.warning ?? `Restored backup from ${file.name}.`;
       applyLedgerState(result.state);
-      setActiveTab("Home");
+      setActiveTab("Ledger");
     } catch {
       setStorageNotice("Backup could not be read. No local data was changed.");
     } finally {
@@ -583,360 +583,279 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <a href="#workspace" className="skip-link">Skip to main content</a>
+    <>
+      <a href="#main" className="skip-link">Skip to main content</a>
       <PwaRegister />
-      <div className="app-frame">
-        <aside className="left-rail">
-          <Link href="/" className="left-rail-brand">
-            <FileText size={22} aria-hidden />
-            <span>OpenLedger</span>
-          </Link>
-          <nav className="left-rail-nav" aria-label="Primary navigation">
-            {TABS.map((tab) => {
-              const Icon = tabIcons[tab];
-              return (
-                <button
-                  key={tab}
-                  className={activeTab === tab ? "active" : ""}
-                  onClick={() => setActiveTab(tab)}
-                  aria-current={activeTab === tab ? "page" : undefined}
-                >
-                  <Icon size={20} aria-hidden />
-                  <span>{tab}</span>
-                </button>
-              );
-            })}
-          </nav>
-          <div className="left-rail-footer">
-            <div className="guest-badge">
-              <span className={"status-dot " + (authMode === "signed-in" ? "online" : "")} />
-              <span>{authMode === "signed-in" ? (profile?.email ?? "Signed in") : "Guest mode"}</span>
+
+      {/* Top navigation */}
+      <nav className="navbar" aria-label="Navigation">
+        <button onClick={() => setActiveTab("Ledger")} className="navbar-brand" style={{ border: 0, background: 'transparent', cursor: 'pointer' }}>
+          <FileText size={20} aria-hidden />
+          OpenLedger
+        </button>
+        <div className="navbar-nav">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              className={activeTab === tab ? "active" : ""}
+              onClick={() => setActiveTab(tab)}
+              aria-current={activeTab === tab ? "page" : undefined}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      <main id="main">
+        {screenshotModeRef.current ? (
+          <div style={{ marginBottom: 16 }}><span className="screenshot-badge">Screenshot demo</span></div>
+        ) : null}
+
+        {/* ════ LEDGER (Home) ════ */}
+        {activeTab === "Ledger" ? (
+          <>
+            {/* Hero — on the canvas */}
+            <div className="hero">
+              <p className="hero-headline">{currency.format(netWorth)}</p>
+              <p className="hero-tagline">
+                {monthlyIncome > monthlyExpense
+                  ? "Your financial position is solid."
+                  : "Review your spending patterns."}
+              </p>
+              <p className="hero-sub">
+                Net worth {"\u2022"} {monthlyIncome > monthlyExpense
+                  ? "+" + currency.format(monthlyIncome - monthlyExpense) + " this month"
+                  : currency.format(monthlyExpense - monthlyIncome) + " overspent this month"}
+              </p>
             </div>
-            {screenshotModeRef.current ? (
-              <span className="screenshot-badge" style={{ marginTop: 8, marginLeft: 14 }}>Screenshot demo</span>
-            ) : null}
-          </div>
-        </aside>
-        <section className="workspace" id="workspace">
-          {activeTab === "Home" ? (
-            <div className="home-screen">
-              {screenshotModeRef.current ? <span className="screenshot-badge" style={{ marginBottom: 8 }}>Screenshot demo</span> : null}
-              <GuestModeGuidance />
-              <section aria-label="Financial summary">
-                <p className="hero-headline">{monthlyIncome > monthlyExpense ? "You're on track." : "Let's review the numbers."}</p>
-                <p className="hero-net-worth">{currency.format(netWorth)}</p>
-                <p className="hero-change">
-                  {monthlyIncome > monthlyExpense
-                    ? "+" + currency.format(monthlyIncome - monthlyExpense) + " this month"
-                    : currency.format(monthlyExpense - monthlyIncome) + " overspent this month"}
-                </p>
-              </section>
-              <div className="quick-actions">
-                <button className="quick-action primary" onClick={() => setActiveTab("Transactions")}>
-                  <Plus size={16} aria-hidden /> Add transaction
-                </button>
-                <button className="quick-action" onClick={() => downloadLedgerExport(currentLedgerData, importedTransactions, importMetadata)}>
-                  <Download size={16} aria-hidden /> Export
-                </button>
-              </div>
-              <section aria-label="Accounts">
-                <div className="section-header">
-                  <h2 className="section-title">Accounts</h2>
+
+            {/* Quick actions — pill row */}
+            <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-3xl)', flexWrap: 'wrap' }}>
+              <button className="pill pill-primary" onClick={() => setActiveTab("Transactions")}>
+                <Plus size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+                Record transaction
+              </button>
+              <button className="pill pill-secondary" onClick={() => downloadLedgerExport(currentLedgerData, importedTransactions, importMetadata)}>
+                <Download size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+                Export ledger
+              </button>
+            </div>
+
+            {/* Accounts strip — border to border */}
+            <div className="data-strip" role="list" aria-label="Accounts">
+              {visibleAccountsWithBalances.map((a) => (
+                <div key={a.id} className="data-strip-item" role="listitem">
+                  <div className="data-strip-label">{a.name}</div>
+                  <div className={"data-strip-value " + (a.balance < 0 ? "negative" : "positive")}>
+                    {currency.format(a.balance)}
+                  </div>
                 </div>
-                <div className="accounts-strip" role="list" aria-label="Account balances">
-                  {visibleAccountsWithBalances.map((a) => (
-                    <div key={a.id} className="account-card" role="listitem">
-                      <span className="account-card-name">{a.name}</span>
-                      <span className={"account-card-balance " + (a.balance < 0 ? "negative" : "positive")}>{currency.format(a.balance)}</span>
+              ))}
+            </div>
+
+            {/* Budget progress — if any */}
+            {currentMonthBudgets.length > 0 ? (
+              <section style={{ marginTop: 'var(--space-3xl)' }}>
+                <h2 className="section-title">Spending plans</h2>
+                {currentMonthBudgets.map((b) => {
+                  const util = budgetUtilization(b, transactions);
+                  const remaining = remainingBudget(b, transactions);
+                  const over = isOverBudget(b, transactions);
+                  return (
+                    <div key={b.id} className="budget-card">
+                      <div className="budget-card-header">
+                        <h3 className="budget-card-category">{b.category}</h3>
+                        <span className={"budget-card-remaining " + (over ? "negative" : util > 80 ? "warning" : "positive")}>
+                          {remaining >= 0 ? "$" + remaining.toFixed(0) + " left" : "$" + Math.abs(remaining).toFixed(0) + " over"}
+                        </span>
+                      </div>
+                      <div className="progress-track">
+                        <div className={"progress-fill " + (over ? "over" : util > 80 ? "warn" : "ok")} style={{ width: Math.min(util, 100) + "%" }} />
+                      </div>
+                      <div className="budget-card-detail">
+                        <span>{currency.format(b.amount)} budgeted</span>
+                        <span>{util}% used</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </section>
+            ) : null}
+
+            {/* Goal progress — if any */}
+            {goals.length > 0 ? (
+              <section style={{ marginTop: 'var(--space-3xl)' }}>
+                <h2 className="section-title">Financial milestones</h2>
+                {goals.slice(0, 5).map((g) => {
+                  const progress = goalProgress(g);
+                  return (
+                    <div key={g.id} className="goal-card">
+                      <div className="goal-card-header">
+                        <h3 className="goal-card-name">{g.name}</h3>
+                        <span className="goal-card-pct">{progress}%</span>
+                      </div>
+                      <div className="progress-track">
+                        <div className="progress-fill ok" style={{ width: Math.min(progress, 100) + "%" }} />
+                      </div>
+                      <div className="goal-card-stats">
+                        <span>{currency.format(g.currentAmount)} of {currency.format(g.targetAmount)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </section>
+            ) : null}
+
+            {/* Recent transactions — editorial list */}
+            <section style={{ marginTop: 'var(--space-3xl)' }}>
+              <h2 className="section-title">Recent entries</h2>
+              {recentTransactions.length === 0 ? (
+                <div className="empty-state">
+                  <strong>Your ledger is empty</strong>
+                  <p>Record your first transaction to start building your financial record.</p>
+                </div>
+              ) : (
+                <div className="editorial-list">
+                  {recentTransactions.map((t) => (
+                    <div key={t.id} className="editorial-row" onClick={() => {}}>
+                      <div>
+                        <div className="editorial-row-title">{t.description}</div>
+                        <div className="editorial-row-meta">{t.category} {"\u2022"} {t.date}</div>
+                      </div>
+                      <span className={"editorial-row-value " + (t.amount > 0 ? "positive" : "negative")}>
+                        {currency.format(t.amount)}
+                      </span>
                     </div>
                   ))}
                 </div>
-              </section>
-              {currentMonthBudgets.length > 0 ? (
-                <section aria-label="Budget progress">
-                  <div className="section-header">
-                    <h2 className="section-title">Budgets</h2>
-                    <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("Budgets"); }}>Manage</a>
-                  </div>
-                  <div className="budget-mini-list">
-                    {currentMonthBudgets.map((b) => {
-                      const util = budgetUtilization(b, transactions);
-                      const remaining = remainingBudget(b, transactions);
-                      const over = isOverBudget(b, transactions);
-                      return (
-                        <div key={b.id} className="budget-mini">
-                          <div className="budget-mini-header">
-                            <strong>{b.category}</strong>
-                            <span className={"budget-mini-remaining " + (over ? "negative" : util > 80 ? "warning" : "positive")}>{remaining >= 0 ? "$" + remaining.toFixed(0) + " left" : "$" + Math.abs(remaining).toFixed(0) + " over"}</span>
-                          </div>
-                          <div className="budget-mini-track">
-                            <div className={"budget-mini-fill " + (over ? "over" : util > 80 ? "warn" : "ok")} style={{ width: Math.min(util, 100) + "%" }} />
-                          </div>
-                          <div className="budget-mini-footer">
-                            <span>{currency.format(b.amount)} total</span>
-                            <span>{util}%</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              ) : null}
-              {goals.length > 0 ? (
-                <section aria-label="Goal progress">
-                  <div className="section-header">
-                    <h2 className="section-title">Goals</h2>
-                    <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("Goals"); }}>Manage</a>
-                  </div>
-                  <div className="goal-mini-list">
-                    {goals.slice(0, 3).map((g) => {
-                      const progress = goalProgress(g);
-                      return (
-                        <div key={g.id} className="goal-mini">
-                          <div className="goal-mini-header">
-                            <strong>{g.name}</strong>
-                            <span className="goal-mini-pct">{progress}%</span>
-                          </div>
-                          <div className="budget-mini-track">
-                            <div className="budget-mini-fill ok" style={{ width: Math.min(progress, 100) + "%" }} />
-                          </div>
-                          <div className="budget-mini-footer">
-                            <span>{currency.format(g.currentAmount)} / {currency.format(g.targetAmount)}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              ) : null}
-              <section aria-label="Recent transactions">
-                <div className="section-header">
-                  <h2 className="section-title">Recent</h2>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("Transactions"); }}>All transactions</a>
-                </div>
-                <div className="card">
-                  {recentTransactions.length === 0 ? (
-                    <div className="tx-empty">
-                      <strong>No transactions yet</strong>
-                      <p>Import a CSV or add your first transaction to get started.</p>
-                    </div>
-                  ) : (
-                    <div className="recent-list">
-                      {recentTransactions.map((t) => (
-                        <div key={t.id} className="recent-row">
-                          <div className="recent-icon"><Banknote size={18} aria-hidden /></div>
-                          <div className="recent-info">
-                            <div className="recent-description">{t.description}</div>
-                            <div className="recent-meta">{t.category} . {t.date}</div>
-                          </div>
-                          <span className={"recent-amount " + (t.amount > 0 ? "positive" : "negative")}>{currency.format(t.amount)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </section>
+              )}
+            </section>
+          </>
+
+        
+        ) : activeTab === "Transactions" ? (
+          <>
+            <div style={{ marginBottom: 'var(--space-3xl)' }}>
+              <TransactionsView transactions={transactions} accounts={accounts} />
             </div>
-          ) : activeTab === "Transactions" ? (
-            <div className="tx-view">
-              <div className="tx-header"><h1>Transactions</h1></div>
-              <div className="card"><TransactionsView transactions={transactions} accounts={accounts} /></div>
-              <div className="form-card" style={{ marginTop: 0 }}>
-                <h2>Add transaction</h2>
-                <ManualTransactionForm
-                  values={transactionForm} accounts={activeAccounts} error={transactionError}
-                  onChange={setTransactionForm} onSave={saveManualTransaction}
-                  onCancel={() => { setTransactionForm({ date: today, description: "", merchant: "", amount: "", direction: "expense", accountId: activeAccounts[0]?.id ?? "chequing", category: "Misc", note: "" }); setTransactionError(""); }}
-                />
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 'var(--space-2xl)', marginTop: 'var(--space-xl)' }}>
+              <h2 className="section-title">Manual entry</h2>
+              <ManualTransactionForm
+                values={transactionForm} accounts={activeAccounts} error={transactionError}
+                onChange={setTransactionForm} onSave={saveManualTransaction}
+                onCancel={() => { setTransactionForm({ date: today, description: "", merchant: "", amount: "", direction: "expense", accountId: activeAccounts[0]?.id ?? "chequing", category: "Misc", note: "" }); setTransactionError(""); }}
+              />
+            </div>
+            {transactions.length > 0 ? (
+              <div style={{ marginTop: 'var(--space-2xl)' }}>
+                <h2 className="section-title">All entries</h2>
+                <TransactionTable transactions={transactions} accountsWithBalances={accountsWithBalances} selectedAccount={selectedAccount} onEdit={editTransaction} onDuplicate={duplicateTransaction} onDelete={deleteTransaction} />
               </div>
-              {transactions.length > 0 ? (
-                <div className="card">
-                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 12px" }}>All transactions</h3>
-                  <TransactionTable selectedAccount={selectedAccount} />
-                </div>
-              ) : null}
+            ) : null}
+          </>
+
+        
+        ) : activeTab === "Goals" ? (
+          <div className="narrow">
+            <h2 className="section-title">Financial milestones</h2>
+            <GoalsPanel goals={goals} onSave={saveGoal} onDelete={deleteGoal} onContribute={contributeToGoal} />
+          </div>
+
+        
+        ) : activeTab === "Settings" ? (
+          <div className="narrow">
+            <h2 className="section-title">Account</h2>
+            <div className="settings-section">
+              <AuthPanel user={user} profile={profile} onSignOut={() => {}} />
             </div>
-          ) : activeTab === "Budgets" ? (
-            <div className="budgets-view">
-              <div className="section-header"><h1>Budgets</h1></div>
+
+            {authMode === "signed-in" ? (
+              <div className="settings-section">
+                <h2>Cloud backup</h2>
+                <CloudBackupPanel user={user} ledgerData={{ accounts, transactions, budgets, goals }} onRestore={handleRestoreFromCloud} />
+              </div>
+            ) : null}
+
+            <div className="settings-section">
+              <h2>Data</h2>
+              <DataManagementPanel user={user} ledgerData={{ accounts, transactions, importMetadata, budgets, goals }} onResetToDemo={resetToDemoData} onClearLocal={clearLocalData} />
+            </div>
+
+            <div className="settings-section">
+              <h2>CSV import</h2>
+              <div className="csv-import">
+                <div className="import-intro">
+                  <div>
+                    <strong>Bring your bank export</strong>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>CSV parsing happens locally in this browser.</p>
+                  </div>
+                  <label className="file-picker">
+                    <Upload size={16} aria-hidden />
+                    Select CSV
+                    <input type="file" accept=".csv,text/csv" onChange={handleCsvFile} />
+                  </label>
+                </div>
+                <div className="import-status">
+                  <span>{importNotice}</span>
+                </div>
+                {parsedCsv ? (
+                  <CsvImportPreview
+                    headers={parsedCsv.headers} mapping={csvMapping}
+                    onMappingChange={(field, header) => setCsvMapping((current) => ({ ...current, [field]: header || undefined }))}
+                    defaultAccountId={defaultImportAccountId} onDefaultAccountChange={setDefaultImportAccountId}
+                    accounts={activeAccounts} rows={importPreview}
+                    validCount={validImportRows.length} duplicateCount={duplicateImportRows.length} errorCount={errorImportRows.length}
+                    onSave={saveImportedTransactions}
+                  />
+                ) : null}
+              </div>
+            </div>
+
+            <div className="settings-section">
+              <h2>Accounts</h2>
+              <AccountManagement values={accountForm} accounts={accountsWithBalances} error={accountError}
+                onChange={setAccountForm} onSave={saveAccount}
+                onCancel={() => { setAccountForm({ name: "", kind: "chequing", subtitle: "", balance: "" }); setAccountError(""); }}
+                onEdit={editAccount} onArchive={archiveAccount} />
+            </div>
+
+            <div className="settings-section">
+              <h2>Budget management</h2>
               <BudgetsPanel budgets={budgets} transactions={transactions} onSave={saveBudget} onDelete={deleteBudget} />
             </div>
-          ) : activeTab === "Goals" ? (
-            <div className="goals-view">
-              <div className="section-header"><h1>Goals</h1></div>
-              <GoalsPanel goals={goals} onSave={saveGoal} onDelete={deleteGoal} onContribute={contributeToGoal} />
+
+            <div className="settings-section">
+              <h2>Preferences</h2>
+              <button className="pill pill-secondary" onClick={() => setLocalOnly((current) => !current)}>
+                <Moon size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+                Local-only mode: {localOnly ? "On" : "Off"}
+              </button>
             </div>
-          ) : (
-            <div className="settings-view">
-              <div className="section-header"><h1>Settings</h1></div>
-              <div className="settings-section">
-                <div className="settings-section-header"><ShieldCheck size={16} aria-hidden /> Account</div>
-                <div className="settings-row"><span className="settings-row-label">Status</span><AuthPanel user={user} profile={profile} onSignOut={() => {}} /></div>
+
+            <div className="settings-section">
+              <h2>Legal</h2>
+              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
+                <a href="/privacy" className="pill pill-ghost">Privacy Policy</a>
+                <a href="/terms" className="pill pill-ghost">Terms of Service</a>
+                <a href="/support" className="pill pill-ghost">Support</a>
               </div>
-              {authMode === "signed-in" ? (
-                <div className="settings-section">
-                  <div className="settings-section-header"><Download size={16} aria-hidden /> Cloud Backup</div>
-                  <div className="settings-row"><CloudBackupPanel user={user} ledgerData={{ accounts, transactions, budgets, goals }} onRestore={handleRestoreFromCloud} /></div>
-                </div>
-              ) : null}
-              <div className="settings-section">
-                <div className="settings-section-header"><Download size={16} aria-hidden /> Data</div>
-                <DataManagementPanel user={user} ledgerData={{ accounts, transactions, importMetadata, budgets, goals }} onResetToDemo={resetToDemoData} onClearLocal={clearLocalData} />
-              </div>
-              <div className="settings-section">
-                <div className="settings-section-header"><Upload size={16} aria-hidden /> CSV Import</div>
-                <div style={{ padding: "12px 20px" }}>
-                  <div className="import-intro">
-                    <div><strong>Bring your bank export, not your bank login.</strong><p>CSV parsing happens locally in this browser.</p></div>
-                    <label className="file-picker"><Upload size={16} aria-hidden /> Select CSV<input type="file" accept=".csv,text/csv" onChange={handleCsvFile} /></label>
-                  </div>
-                  <div className="import-status" style={{ marginTop: 12 }}><CheckCircle2 size={15} aria-hidden /><span>{importNotice}</span></div>
-                  {parsedCsv ? (
-                    <CsvImportPreview
-                      headers={parsedCsv.headers} mapping={csvMapping}
-                      onMappingChange={(field, header) => setCsvMapping((current) => ({ ...current, [field]: header || undefined }))}
-                      defaultAccountId={defaultImportAccountId} onDefaultAccountChange={setDefaultImportAccountId}
-                      accounts={activeAccounts} rows={importPreview}
-                      validCount={validImportRows.length} duplicateCount={duplicateImportRows.length} errorCount={errorImportRows.length}
-                      onSave={saveImportedTransactions}
-                    />
-                  ) : null}
-                </div>
-              </div>
-              <div className="settings-section">
-                <div className="settings-section-header"><WalletCards size={16} aria-hidden /> Manage Accounts ({activeAccounts.length} active)</div>
-                <div style={{ padding: "12px 20px" }}>
-                  <AccountManagement values={accountForm} accounts={accountsWithBalances} error={accountError}
-                    onChange={setAccountForm} onSave={saveAccount}
-                    onCancel={() => { setAccountForm({ name: "", kind: "chequing", subtitle: "", balance: "" }); setAccountError(""); }}
-                    onEdit={editAccount} onArchive={archiveAccount} />
-                </div>
-              </div>
-              <div className="settings-section">
-                <div className="settings-section-header"><Moon size={16} aria-hidden /> Preferences</div>
-                <div className="settings-row"><span className="settings-row-label">Local-only mode</span><button onClick={() => setLocalOnly((current) => !current)}>{localOnly ? "On" : "Off"}</button></div>
-              </div>
-              <div className="settings-section">
-                <div className="settings-section-header"><ShieldCheck size={16} aria-hidden /> Legal</div>
-                <div className="settings-row"><a href="/privacy" className="settings-row-label" style={{ textDecoration: "none" }}>Privacy Policy</a><ArrowRight size={16} aria-hidden /></div>
-                <div className="settings-row"><a href="/terms" className="settings-row-label" style={{ textDecoration: "none" }}>Terms of Service</a><ArrowRight size={16} aria-hidden /></div>
-                <div className="settings-row"><a href="/support" className="settings-row-label" style={{ textDecoration: "none" }}>Support</a><ArrowRight size={16} aria-hidden /></div>
-              </div>
-              <div style={{ textAlign: "center", padding: "16px 0", color: "var(--text-tertiary)", fontSize: 13 }}>OpenLedger . Free &amp; open-source . AGPL-3.0</div>
             </div>
-          )}
-        </section>
-      </div>
-      <nav className="bottom-tabs" aria-label="Navigation">
-        {TABS.map((tab) => {
-          const Icon = tabIcons[tab];
-          return (
-            <button key={tab} className={activeTab === tab ? "active" : ""}
-              onClick={() => setActiveTab(tab)} aria-current={activeTab === tab ? "page" : undefined}>
-              <Icon aria-hidden /><span>{tab}</span>
-            </button>
-          );
-        })}
-      </nav>
+
+            <div style={{ textAlign: 'center', marginTop: 'var(--space-3xl)', fontSize: 12, color: 'var(--text-tertiary)' }}>
+              OpenLedger {"\u2022"} Free &amp; open-source {"\u2022"} AGPL-3.0
+            </div>
+          </div>
+        ) : null}
+      </main>
+
+      {/* Storage live region */}
       <div className="storage-live-region" aria-live="polite" aria-atomic="true" role="status">
         {storageNotice ? <span className="storage-notice">{storageNotice}</span> : null}
       </div>
-    </main>
+    </>
   );
 
-  function TransactionTable({ selectedAccount }: { selectedAccount: Account }) {
-    const rows = transactionsForAccount.length > 0 ? transactionsForAccount : transactions.slice(0, 20);
-    if (rows.length === 0) return null;
-    return (
-      <div className="tx-table">
-        {rows.map((transaction) => (
-          <div className="tx-row" key={transaction.id}>
-            <div className="tx-icon"><ReceiptText size={18} aria-hidden /></div>
-            <div className="tx-info">
-              <div className="tx-desc">{transaction.description}</div>
-              <div className="tx-meta">
-                <span>{formatDate(transaction.date)}</span> <span>. </span>
-                <span>{transaction.category}</span> <span>. </span>
-                <span>{accountsWithBalances.find((a) => a.id === transaction.accountId)?.name ?? selectedAccount.name}</span>
-              </div>
-            </div>
-            <div className="tx-actions">
-              <button onClick={() => editTransaction(transaction)} aria-label={"Edit " + transaction.description} className="tx-action-btn" title="Edit"><Pencil size={15} /></button>
-              <button onClick={() => duplicateTransaction(transaction)} aria-label={"Duplicate " + transaction.description} className="tx-action-btn" title="Duplicate"><Copy size={15} /></button>
-              <button onClick={() => deleteTransaction(transaction)} aria-label={"Delete " + transaction.description} className="tx-action-btn danger" title="Delete"><Trash2 size={15} /></button>
-            </div>
-            <span className={"recent-amount " + (transaction.amount > 0 ? "positive" : "negative")} style={{ textAlign: "right", minWidth: 90 }}>{currency.format(transaction.amount)}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
-}
-
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function buildMonthOptions(transactions: typeof ledgerData.transactions, snapshots: MonthlySnapshot[]) {
-  const known = new Map(snapshots.map((snapshot) => [snapshot.month, snapshot.label]));
-  transactions.forEach((transaction) => {
-    const month = transaction.date.slice(0, 7);
-    if (!known.has(month)) known.set(month, monthLabel(month));
-  });
-
-  return [...known.entries()]
-    .sort(([a], [b]) => b.localeCompare(a))
-    .map(([value, label]) => ({ value, label }));
-}
-
-function buildSnapshot(month: string, transactions: typeof ledgerData.transactions, fallback: MonthlySnapshot): MonthlySnapshot {
-  const monthTransactions = transactions.filter((transaction) => transaction.date.startsWith(month));
-  if (
-    monthTransactions.length === 0 ||
-    !monthTransactions.some((transaction) => transaction.source === "csv" || transaction.source === "manual")
-  ) {
-    return fallback;
-  }
-
-  const income = sumWhere(monthTransactions, (transaction) => transaction.amount > 0);
-  const essential = sumWhere(monthTransactions, (transaction) =>
-    ["Groceries", "Rent", "Utilities", "Transport", "Health"].includes(transaction.category),
-  );
-  const optional = sumWhere(monthTransactions, (transaction) =>
-    transaction.amount < 0 && ["Food delivery", "Shopping", "Misc", "Food & Drink"].includes(transaction.category),
-  );
-  const recurring = sumWhere(monthTransactions, (transaction) =>
-    ["Subscriptions", "Rent", "Utilities"].includes(transaction.category),
-  );
-  const debt = sumWhere(monthTransactions, (transaction) => transaction.category === "Debt");
-  const savingsMovement = income + essential + optional + recurring + debt;
-  const largest = Math.max(1, ...[income, essential, optional, recurring, savingsMovement, debt].map((value) => Math.abs(value)));
-
-  return {
-    month,
-    label: monthLabel(month),
-    daysLeft: fallback.month === month ? fallback.daysLeft : 0,
-    metrics: [
-      { id: "income", label: "Income", amount: income, ratio: ratio(income, largest), tone: "sage" },
-      { id: "essential", label: "Essential spending", amount: essential, ratio: ratio(essential, largest), tone: "quiet" },
-      { id: "optional", label: "Optional spending", amount: optional, ratio: ratio(optional, largest), tone: "quiet" },
-      { id: "recurring", label: "Recurring obligations", amount: recurring, ratio: ratio(recurring, largest), tone: "quiet" },
-      { id: "savings", label: "Savings movement", amount: savingsMovement, ratio: ratio(savingsMovement, largest), tone: "sage" },
-      { id: "debt", label: "Debt progress", amount: debt, ratio: ratio(debt, largest), tone: "amber" },
-    ],
-  };
 }
 
 function sumWhere(transactions: typeof ledgerData.transactions, predicate: (transaction: typeof ledgerData.transactions[number]) => boolean) {
@@ -958,6 +877,44 @@ function normalizeAccountKind(kind: AccountKind): AccountKind {
 function accountKindLabel(kind: AccountKind) {
   if (kind === "crypto") return "Investment";
   return accountKindOptions.find((item) => item.value === normalizeAccountKind(kind))?.label ?? "Account";
+}
+
+function TransactionTable({ transactions, accountsWithBalances, selectedAccount, onEdit, onDuplicate, onDelete }: { transactions: Transaction[]; accountsWithBalances: Account[]; selectedAccount: Account; onEdit: (t: Transaction) => void; onDuplicate: (t: Transaction) => void; onDelete: (t: Transaction) => void }) {
+  const rows = transactions.slice(0, 50);
+  if (rows.length === 0) return null;
+  return (
+    <div className="editorial-list">
+      {rows.map((transaction) => (
+        <div key={transaction.id} className="editorial-row">
+          <div>
+            <div className="editorial-row-title">{transaction.description}</div>
+            <div className="editorial-row-meta">
+              <span>{formatDate(transaction.date)}</span>
+              <span> · </span>
+              <span>{transaction.category}</span>
+              <span> · </span>
+              <span>{accountsWithBalances.find((a) => a.id === transaction.accountId)?.name ?? selectedAccount.name}</span>
+            </div>
+          </div>
+          <div className="editorial-row-actions">
+            <button onClick={() => onEdit(transaction)} aria-label={"Edit " + transaction.description} title="Edit"><Pencil size={13} /></button>
+            <button onClick={() => onDuplicate(transaction)} aria-label={"Duplicate " + transaction.description} title="Duplicate"><Copy size={13} /></button>
+            <button onClick={() => onDelete(transaction)} aria-label={"Delete " + transaction.description} className="danger" title="Delete"><Trash2 size={13} /></button>
+          </div>
+          <span className={"editorial-row-value " + (transaction.amount > 0 ? "positive" : "negative")}>{currency.format(transaction.amount)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value + "T12:00:00"));
+}
+
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat("en-CA", { hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
 function CsvImportPreview({
