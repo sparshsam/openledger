@@ -180,20 +180,34 @@ main.narrow { max-width: 720px; }
 .sheet-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); }
 @media (min-width: 768px) { .sheet-overlay { align-items: center; } .sheet { border-radius: var(--radius-sm); max-height: 70vh; } }
 
-/* ══ Forms — minimal, no borders ══ */
-.form-group { margin-bottom: var(--space-lg); }
-.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
-.form-group input, .form-group select { width: 100%; padding: 12px 14px; background: var(--surface-secondary); border: none; border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; }
-.form-group input:focus, .form-group select:focus { box-shadow: 0 0 0 2px var(--accent); }
-.form-group .wide { grid-column: span 2; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
-@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
-.form-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); }
-
+/* ══ Forms — editorial, minimal ══ */
+.ef { display: flex; flex-direction: column; gap: var(--space-md); }
+.ef-input { width: 100%; padding: 14px 16px; background: var(--surface-secondary); border: none; border-radius: var(--radius-sm); color: var(--text); font-size: 15px; outline: none; transition: box-shadow 150ms; font-family: var(--font-sans); }
+.ef-input:focus { box-shadow: 0 0 0 2px var(--accent); }
+.ef-input::placeholder { color: var(--text-tertiary); }
+.ef-select { width: 100%; padding: 14px 16px; background: var(--surface-secondary); border: none; border-radius: var(--radius-sm); color: var(--text); font-size: 15px; outline: none; appearance: none; cursor: pointer; font-family: var(--font-sans); }
+.ef-select:focus { box-shadow: 0 0 0 2px var(--accent); }
+.ef-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-md); }
+.ef-error { display: block; color: var(--negative); font-size: 13px; margin-top: 2px; }
 /* ══ Gentle messages ══ */
 .gentle-error { color: var(--negative); font-size: 13px; padding: 8px 0; }
 .gentle-help { color: var(--text-tertiary); font-size: 13px; }
 
+
+/* ══ Legacy form support ══ */
+.form-grid { display: flex; flex-direction: column; gap: 12px; }
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-secondary); }
+.form-grid input, .form-grid select { width: 100%; padding: 14px 16px; background: var(--surface-secondary); border: none; border-radius: var(--radius-sm); color: var(--text); font-size: 15px; outline: none; font-family: var(--font-sans); }
+.form-grid input:focus, .form-grid select:focus { box-shadow: 0 0 0 2px var(--accent); }
+.form-grid .wide-field { grid-column: 1 / -1; }
+.account-form-grid { display: flex; flex-direction: column; gap: 12px; }
+.ledger-form { display: flex; flex-direction: column; gap: var(--space-md); }
+.form-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-md); }
+.form-actions button { padding: 10px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; border: none; background: var(--accent); color: white; cursor: pointer; }
+.form-actions button:hover { background: var(--accent-hover); }
+.form-actions button:last-child { background: var(--surface-secondary); color: var(--text); }
+.gentle-error { color: var(--negative); font-size: 13px; display: block; margin-top: 4px; }
+.gentle-help { color: var(--text-tertiary); font-size: 13px; display: block; margin-top: 4px; }
 /* ══ Auth / cloud backup — inline ══ */
 .auth-section { margin-top: var(--space-lg); }
 .cloud-backup-panel { margin-top: var(--space-md); }
