@@ -201,6 +201,7 @@ export default function Home() {
   });
   const [accountError, setAccountError] = useState("");
   const jsonImportRef = useRef<HTMLInputElement | null>(null);
+  const csvFileRef = useRef<HTMLInputElement | null>(null);
   const skipNextSaveCountRef = useRef(0);
   const nextSaveNoticeRef = useRef<string | null>(null);
 
@@ -708,6 +709,10 @@ export default function Home() {
                 Record transaction
                 <Plus size={16} style={{ strokeWidth: 2.5 }} />
               </button>
+              <button className="pill pill-primary" onClick={() => csvFileRef.current?.click()} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                Import bank statements
+                <Upload size={16} />
+              </button>
               <button className="pill pill-secondary" onClick={() => downloadLedgerExport(currentLedgerData, importedTransactions, importMetadata)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 Export ledger
                 <Download size={16} />
@@ -717,6 +722,9 @@ export default function Home() {
                 <ReceiptText size={16} />
               </button>
             </div>
+
+            {/* Hidden CSV file input */}
+            <input ref={csvFileRef} type="file" accept=".csv" onChange={handleCsvFile} style={{ display: 'none' }} />
 
             {/* Accounts strip — border to border */}
             <div className="data-strip" role="list" aria-label="Accounts">
@@ -836,6 +844,35 @@ export default function Home() {
               </button>
             </div>
             <TransactionsView transactions={transactions} accounts={accounts} />
+
+            {/* CSV import preview — shown after selecting a CSV file */}
+            {parsedCsv ? (
+              <div style={{ marginTop: 'var(--space-lg)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+                  <h2 className="section-title" style={{ margin: 0 }}>Import preview</h2>
+                  <button className="pill pill-ghost" onClick={() => { setParsedCsv(null); setCsvMapping({}); }} style={{ fontSize: 12, padding: '4px 12px', border: 0 }}>
+                    Dismiss
+                  </button>
+                </div>
+                <CsvImportPreview
+                  headers={parsedCsv.headers}
+                  mapping={csvMapping}
+                  onMappingChange={(field, header) => setCsvMapping((prev) => ({ ...prev, [field]: header }))}
+                  defaultAccountId={defaultImportAccountId}
+                  onDefaultAccountChange={setDefaultImportAccountId}
+                  accounts={activeAccounts}
+                  rows={importPreview}
+                  validCount={validImportRows.length}
+                  duplicateCount={duplicateImportRows.length}
+                  errorCount={errorImportRows.length}
+                  onSave={saveImportedTransactions}
+                />
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8 }}>
+                  {csvFileName} {"•"} {parsedCsv.rows.length} rows
+                </p>
+              </div>
+            ) : null}
+
             {showTxForm && (
               <div className="sheet-overlay" onClick={() => setShowTxForm(false)}>
                 <div className="sheet" onClick={(e) => e.stopPropagation()}>
