@@ -46,3 +46,4 @@ yarn-error.log*
 next-env.d.ts
 apps/mcp/dist/
 apps/mcp/node_modules/
+supabase/.temp/
