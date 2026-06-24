@@ -384,19 +384,27 @@ export default function Home() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Reset input so the same file can be re-selected
+    event.target.value = "";
+
     if (file.size > MAX_CSV_FILE_SIZE) {
       setImportNotice(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 50 MB.`);
       return;
     }
 
-    const text = await file.text();
-    const parsed = parseCsv(text);
-    const nextImportId = `import-${crypto.randomUUID()}`;
-    setParsedCsv(parsed);
-    setCsvFileName(file.name);
-    setCsvMapping(guessMapping(parsed.headers));
-    setCurrentImportId(nextImportId);
-    setImportNotice(`${parsed.rows.length} rows parsed locally.${parsed.rows.length >= MAX_CSV_ROWS ? " Row limit reached." : ""} Review the mapping before saving.`);
+    try {
+      const text = await file.text();
+      const parsed = parseCsv(text);
+      const nextImportId = `import-${crypto.randomUUID()}`;
+      setParsedCsv(parsed);
+      setCsvFileName(file.name);
+      setCsvMapping(guessMapping(parsed.headers));
+      setCurrentImportId(nextImportId);
+      setImportNotice(`${parsed.rows.length} rows parsed locally.${parsed.rows.length >= MAX_CSV_ROWS ? " Row limit reached." : ""} Review the mapping before saving.`);
+      setActiveTab("Transactions");
+    } catch (err) {
+      setImportNotice(`Failed to parse file: ${err instanceof Error ? err.message : "Unknown error"}`);
+    }
   }
 
   function saveImportedTransactions() {
