@@ -723,8 +723,8 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Hidden CSV file input */}
-            <input ref={csvFileRef} type="file" accept=".csv" onChange={handleCsvFile} style={{ display: 'none' }} />
+            {/* Hidden CSV/TSV file input — most banks export CSV; some use .tsv or .txt */}
+            <input ref={csvFileRef} type="file" accept=".csv,.tsv,.txt" onChange={handleCsvFile} style={{ display: 'none' }} />
 
             {/* Accounts strip — border to border */}
             <div className="data-strip" role="list" aria-label="Accounts">
