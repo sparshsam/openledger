@@ -32,7 +32,7 @@ export function McpTokensPanel() {
   const [newToken, setNewToken] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
 
-  const fetchTokens = async () => {
+  const loadTokens = async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/mcp/tokens");
@@ -49,9 +49,11 @@ export function McpTokensPanel() {
     }
   };
 
-  // Fetch on mount
+  // Fetch on mount — loadTokens is shared with handleCreate/handleRevoke
+  // so it can't be inlined into the effect.
   useEffect(() => {
-    fetchTokens().catch(() => {});
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadTokens();
   }, []);
 
   const handleCreate = async () => {

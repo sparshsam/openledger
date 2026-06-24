@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * Budget tools — list, get, create, update, delete budgets.
  *

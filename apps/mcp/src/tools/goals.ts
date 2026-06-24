@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * Goal tools — list, get, create, update, delete, and contribute to goals.
  *
