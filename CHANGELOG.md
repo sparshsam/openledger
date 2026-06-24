@@ -2,6 +2,17 @@
 
 All notable changes to OpenLedger will be documented here.
 
+## 0.9.2 — 2026-06-24
+
+- **Account Gateway:** App restructured with public landing page (`/`), auth gateway (`/account`), and ledger app (`/app`).
+- **New routes:** `/` (editorial landing page with hero, principles, CTAs), `/account` (Continue with Google / Try without account), `/about` (about page), all with shared header/footer.
+- **Public header/footer:** Added `PublicHeader` and `PublicFooter` components used on `/`, `/about`, `/privacy`, `/terms`, `/support`. Not used on `/app`.
+- **Guest mode unchanged:** "Try without account" still provides full local functionality. Guest mode code remains intact.
+- **Account gateway:** Signed-in users auto-redirect to `/app`. Guest users click through to the same app with localStorage.
+- **Demo data removed:** Seed data defaults to a single empty account with no transactions, budgets, goals, or other demo entries. Screenshot seed (`?screenshots=true`) preserved.
+- **Build fix:** Hydration guard and default account prevent SSR prerender errors with empty data.
+- All routes are static-prebuilt except auth callback. Google auth, device registration, backup, and all ledger features unchanged.
+
 ## 0.9.1 — 2026-06-24
 
 - **Auth UX overhaul:** Removed email OTP sign-in. Primary auth is now "Continue with Google" with "Continue as Guest" as the default.

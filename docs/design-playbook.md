@@ -230,8 +230,8 @@ Action pages are **terminals**. The user arrives, executes, and leaves.
   - `border-t-2 border-dashed` as the separator from the flow above.
   - Monospace key-value pairs: `flex justify-between py-2 border-b`.
   - A centered footer `— AppName vX.Y.Z —` to close the ticket.
-  - Include clear next actions below (download, share, view on explorer, create
-    another).
+- Include clear next actions below (download, share, view on explorer, create
+  another).
 
 ### History / Activity Sections
 

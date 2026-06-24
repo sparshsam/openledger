@@ -5,9 +5,10 @@
 OpenLedger is a private, local-first finance tool for everyday budgeting and records.
 Built with Next.js + TypeScript. Formerly QuietLedger.
 
-Current Release: v0.9.1 — Google Auth Foundation (2026-06-24)
+Current Release: v0.9.2 — Account Gateway (2026-06-24)
 
 Releases:
+           v0.9.2 — Account Gateway, landing page, /app route, empty default state
            v0.9.1 — Google Auth Foundation, auth UX overhaul, device registration, domain cleanup
            v0.9.0 — Supabase Readiness, 3 new tables, RLS hardening, database types
            v0.8.9 — Settings panel consistency, release QA, CSS @import fix

@@ -253,6 +253,23 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 .auth-google-btn:hover { background: var(--surface-secondary); }
 .auth-google-btn:disabled { opacity: 0.6; cursor: default; }
 
+/* ══ Public pages — pill buttons ══ */
+.pill-btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 999px; border: none; background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
+.pill-btn-primary:hover { opacity: 0.9; }
+
+.pill-btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background 0.15s; }
+.pill-btn-secondary:hover { background: var(--surface-secondary); }
+
+/* ══ Legal pages — shared content ══ */
+.legal-body section { margin-bottom: 32px; }
+.legal-body h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; margin-top: 24px; }
+.legal-body p { margin-bottom: 12px; line-height: 1.7; }
+.legal-body ul { padding-left: 20px; margin-bottom: 12px; }
+.legal-body li { margin-bottom: 6px; }
+.legal-body a { color: var(--accent); }
+.legal-body code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px; background: var(--surface-secondary); padding: 1px 6px; border-radius: 4px; }
+.legal-updated { font-size: 13px; color: var(--text-tertiary); margin-bottom: 32px; }
+
 /* ══ CSV import ══ */
 .csv-import { margin-top: var(--space-lg); }
 .csv-import .import-intro { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-md); margin-bottom: var(--space-md); }

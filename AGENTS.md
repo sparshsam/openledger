@@ -6,7 +6,7 @@ OpenLedger is a private, local-first finance tool. Warm ledger aesthetic, editor
 
 ## Current Release
 
-v0.9.1 — Google Auth Foundation (Google-only OAuth, device registration, auth docs). Live at https://openledgerbysparsh.vercel.app
+v0.9.2 — Account Gateway (landing page, /app route, account gateway, empty default state). Live at https://openledgerbysparsh.vercel.app
 
 ## Build History (v0.8.x Quick Reference)
 
