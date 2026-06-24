@@ -6,12 +6,13 @@ OpenLedger is a private, local-first finance tool. Warm ledger aesthetic, editor
 
 ## Current Release
 
-v0.9.8 — Sync hardening, data integrity, security audit (76 tests). Live at https://openledgerbysparsh.vercel.app
+v0.9.9 — MCP Server (30 AI agent tools, token auth, Streamable HTTP endpoint). Live at https://openledgerbysparsh.vercel.app
 
-## Build History (v0.8.x Quick Reference)
+## Build History (v0.9.x Quick Reference)
 
 | Version | What |
 |---------|------|
+| v0.9.9 | MCP Server — 30 tools across 7 domains, token auth (SHA-256), Settings UI for create/list/revoke, Vercel-hosted Streamable HTTP endpoint, 76 tests |
 | v0.9.8 | Sync hardening, data integrity validation (duplicates, reconciliation, backup verify), security audit, 76 tests |
 | v0.9.7 | Conflict detection, device rename/remove, force re-sync, sync diagnostics page |
 | v0.9.6 | Receipt capture — Supabase Storage, photo upload, mobile camera, gallery, preview |

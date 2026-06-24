@@ -48,7 +48,7 @@ Releases:
 - **Deployment:** Vercel → https://openledgerbysparsh.vercel.app
 - **GitHub:** https://github.com/sparshsam/openledger
 
-## Status — v0.8.x (Editorial Product)
+## Status — v0.9.x (Editorial Product)
 
 ### Current features
 - Guest mode (default) — no account required, full local functionality
@@ -76,8 +76,9 @@ Releases:
 - Recurring entries — monthly/weekly/custom schedules, upcoming entries, skip/pause/resume
 - Data integrity — duplicate detection, transaction validation, account reconciliation, backup/restore verification
 - Security audit — RLS review, dependency audit, storage policy hardening
+- **MCP Server** — 30 AI agent tools across 7 domains (accounts, transactions, categories, budgets, goals, dashboard, search), SHA-256 token auth, Streamable HTTP endpoint on Vercel, Settings UI for token management, 76 tests
 - Finance engine (totals, grouping, insights, trends, budgets, goals) with 76 unit tests
-- Supabase database with 12 migration-managed tables (profiles, accounts, transactions, categories, budgets, goals, imports, audit_events, backups, devices, sync_events, receipts)
+- Supabase database with 13 migration-managed tables (profiles, accounts, transactions, categories, budgets, goals, imports, audit_events, backups, devices, sync_events, receipts, mcp_tokens)
 - Typed Supabase client types in `src/lib/supabase/database.types.ts`
 
 ### Design System (OpenProof Playbook aligned)
