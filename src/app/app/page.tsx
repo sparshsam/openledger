@@ -66,6 +66,7 @@ import { GuestModeGuidance, CloudBackupGuidance } from "@/components/empty-state
 import { BudgetsPanel } from "@/components/budgets-panel";
 import { GoalsPanel } from "@/components/goals-panel";
 import { RecurringPanel } from "@/components/recurring-panel";
+import { ReceiptGallery } from "@/components/receipt-gallery";
 import { DataManagementPanel } from "@/components/data-management-panel";
 import { budgetUtilization, remainingBudget, isOverBudget } from "@/lib/finance/budgets";
 import { goalProgress } from "@/lib/finance/goals";
@@ -162,6 +163,7 @@ export default function Home() {
   const [budgets, setBudgets] = useState(ledgerData.budgets);
   const [goals, setGoals] = useState(ledgerData.goals);
   const [recurringEntries, setRecurringEntries] = useState<RecurringEntry[]>(ledgerData.recurringEntries ?? []);
+  const [expandedReceiptTxId, setExpandedReceiptTxId] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [storageNotice, setStorageNotice] = useState("Loading local ledger...");
   const [hydrated, setHydrated] = useState(false);
@@ -787,14 +789,30 @@ export default function Home() {
               ) : (
                 <div className="editorial-list">
                   {recentTransactions.map((t) => (
-                    <div key={t.id} className="editorial-row" onClick={() => {}}>
-                      <div>
-                        <div className="editorial-row-title">{t.description}</div>
-                        <div className="editorial-row-meta">{t.category} {"\u2022"} {t.date}</div>
+                    <div key={t.id}>
+                      <div className="editorial-row">
+                        <div>
+                          <div className="editorial-row-title">{t.description}</div>
+                          <div className="editorial-row-meta">{t.category} {"\u2022"} {t.date}</div>
+                        </div>
+                        <div className="editorial-row-actions" style={{ gap: 4 }}>
+                          <button
+                            onClick={() => setExpandedReceiptTxId(expandedReceiptTxId === t.id ? null : t.id)}
+                            title="Receipts"
+                            style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 6px", cursor: "pointer", color: "var(--text-tertiary)", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4 }}
+                          >
+                            <ReceiptText size={12} />
+                          </button>
+                        </div>
+                        <span className={"editorial-row-value " + (t.amount > 0 ? "positive" : "negative")}>
+                          {currency.format(t.amount)}
+                        </span>
                       </div>
-                      <span className={"editorial-row-value " + (t.amount > 0 ? "positive" : "negative")}>
-                        {currency.format(t.amount)}
-                      </span>
+                      {expandedReceiptTxId === t.id ? (
+                        <div style={{ padding: "8px 0 12px 56px" }}>
+                          <ReceiptGallery transactionId={t.id} />
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
