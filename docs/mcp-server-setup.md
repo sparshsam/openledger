@@ -36,22 +36,20 @@ Agent → "Done! $45 dinner added to your Chase card."
 
 ## Step 2: Configure Your AI Agent
 
+The MCP server is hosted at `https://openledgerbysparsh.vercel.app/api/mcp`. You just need the URL and your token — no local setup required.
+
 ### Claude Code
 
-Add the server to your Claude Code configuration:
+Add this to your Claude Code configuration:
 
 ```json
-// ~/.claude/settings.json
+// ~/.claude/settings.json (global) or .claude/settings.local.json (project)
 {
   "mcpServers": {
     "openledger": {
-      "command": "node",
-      "args": ["/path/to/openledger/apps/mcp/dist/index.js"],
-      "env": {
-        "NEXT_PUBLIC_SUPABASE_URL": "https://qoxmibmbyjmkntzrckyr.supabase.co",
-        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFveG1pYm1ieWpta250enJja3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTQ4NjYsImV4cCI6MjA5NTYzMDg2Nn0.yeOFhsbEUtzE4QqCyQDeOQRSJNNE_Y4hgfXkfdV-lUw",
-        "SUPABASE_SERVICE_ROLE_KEY": "<your-service-role-key>",
-        "OPENLEDGER_ACCESS_TOKEN": "<your-token-from-step-1>"
+      "url": "https://openledgerbysparsh.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ol_<your-token-from-step-1>"
       }
     }
   }
@@ -65,13 +63,9 @@ Add the server to your Claude Code configuration:
 {
   "mcpServers": {
     "openledger": {
-      "command": "node",
-      "args": ["/path/to/openledger/apps/mcp/dist/index.js"],
-      "env": {
-        "NEXT_PUBLIC_SUPABASE_URL": "https://qoxmibmbyjmkntzrckyr.supabase.co",
-        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFveG1pYm1ieWpta250enJja3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTQ4NjYsImV4cCI6MjA5NTYzMDg2Nn0.yeOFhsbEUtzE4QqCyQDeOQRSJNNE_Y4hgfXkfdV-lUw",
-        "SUPABASE_SERVICE_ROLE_KEY": "<your-service-role-key>",
-        "OPENLEDGER_ACCESS_TOKEN": "<your-token-from-step-1>"
+      "url": "https://openledgerbysparsh.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ol_<your-token-from-step-1>"
       }
     }
   }
@@ -81,12 +75,16 @@ Add the server to your Claude Code configuration:
 ### Cursor
 
 1. Settings → MCP → Add Server
-2. Command: `node /path/to/openledger/apps/mcp/dist/index.js`
-3. Add the four environment variables above.
+2. URL: `https://openledgerbysparsh.vercel.app/api/mcp`
+3. Headers: `{ "Authorization": "Bearer ol_<your-token>" }`
 
 ### ChatGPT (MCP support)
 
-Follow OpenAI's MCP server configuration steps for the client you are using.
+Follow your client's instructions for configuring a Streamable HTTP MCP server with the URL above and Authorization header.
+
+---
+
+> **For local development:** If you want to run the MCP server locally instead (e.g., for debugging), see the `apps/mcp/` package. Build with `cd apps/mcp && npm install && npm run build`, then configure your agent with stdio transport + env vars for `OPENLEDGER_ACCESS_TOKEN`, `NEXT_PUBLIC_SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Step 3: Build the Server
 
