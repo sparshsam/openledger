@@ -65,7 +65,7 @@ function registerAccountTools(
       currency: z.string().optional().default("CAD").describe("Currency code"),
     },
     async ({ name, kind, subtitle, balance, currency }) => {
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_accounts")
         .insert({ name, kind, subtitle, balance, currency, user_id: userId })
         .select().single();
@@ -97,7 +97,7 @@ function registerAccountTools(
       if (balance !== undefined) updates.balance = balance;
       if (currency !== undefined) updates.currency = currency;
       if (Object.keys(updates).length === 0) return { content: [{ type: "text" as const, text: "No fields provided." }] };
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_accounts").update(updates).eq("id", accountId).select().single();
       if (error) throw new Error(`Failed to update account: ${error.message}`);
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -113,7 +113,7 @@ function registerAccountTools(
         .from("openledger_accounts").select("id").eq("id", accountId)
         .eq("user_id", userId).single();
       if (checkError || !existing) throw new Error("Account not found or access denied");
-      const { error } = await (getClient() as DbClient)
+      const { error } = await (getClient() as any)
         .from("openledger_accounts").update({ archived_at: new Date().toISOString() }).eq("id", accountId);
       if (error) throw new Error(`Failed to archive account: ${error.message}`);
       return { content: [{ type: "text" as const, text: `Account ${accountId} archived.` }] };
@@ -129,7 +129,7 @@ function registerAccountTools(
         .from("openledger_accounts").select("id").eq("id", accountId)
         .eq("user_id", userId).single();
       if (checkError || !existing) throw new Error("Account not found or access denied");
-      const { error } = await (getClient() as DbClient)
+      const { error } = await (getClient() as any)
         .from("openledger_accounts").update({ archived_at: null }).eq("id", accountId);
       if (error) throw new Error(`Failed to unarchive account: ${error.message}`);
       return { content: [{ type: "text" as const, text: `Account ${accountId} restored.` }] };
@@ -196,7 +196,7 @@ function registerTransactionTools(
       note: z.string().optional().describe("Optional note"),
     },
     async ({ accountId, date, description, amount, category, merchant, note }) => {
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_transactions")
         .insert({ account_id: accountId, date, description, amount, category, merchant: merchant ?? null, note: note ?? null, source: "manual", user_id: userId })
         .select().single();
@@ -232,7 +232,7 @@ function registerTransactionTools(
       if (note !== undefined) u.note = note;
       if (accountId !== undefined) u.account_id = accountId;
       if (Object.keys(u).length === 0) return { content: [{ type: "text" as const, text: "No fields provided." }] };
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_transactions").update(u).eq("id", transactionId).select().single();
       if (error) throw new Error(`Failed to update transaction: ${error.message}`);
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -248,7 +248,7 @@ function registerTransactionTools(
         .from("openledger_transactions").select("id").eq("id", transactionId)
         .eq("user_id", userId).single();
       if (checkError || !existing) throw new Error("Transaction not found or access denied");
-      const { error } = await (getClient() as DbClient)
+      const { error } = await (getClient() as any)
         .from("openledger_transactions").delete().eq("id", transactionId);
       if (error) throw new Error(`Failed to delete transaction: ${error.message}`);
       return { content: [{ type: "text" as const, text: `Transaction ${transactionId} deleted.` }] };
@@ -330,7 +330,7 @@ function registerBudgetTools(
       categoryId: z.string().optional().describe("Category ID"),
     },
     async ({ month, amount, categoryId }) => {
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_budgets")
         .insert({ month, amount, category_id: categoryId ?? null, user_id: userId })
         .select().single();
@@ -356,7 +356,7 @@ function registerBudgetTools(
       if (amount !== undefined) u.amount = amount;
       if (categoryId !== undefined) u.category_id = categoryId;
       if (Object.keys(u).length === 0) return { content: [{ type: "text" as const, text: "No fields provided." }] };
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_budgets").update(u).eq("id", budgetId).select().single();
       if (error) throw new Error(`Failed to update budget: ${error.message}`);
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -372,7 +372,7 @@ function registerBudgetTools(
         .from("openledger_budgets").select("id").eq("id", budgetId)
         .eq("user_id", userId).single();
       if (checkError || !existing) throw new Error("Budget not found or access denied");
-      const { error } = await (getClient() as DbClient)
+      const { error } = await (getClient() as any)
         .from("openledger_budgets").delete().eq("id", budgetId);
       if (error) throw new Error(`Failed to delete budget: ${error.message}`);
       return { content: [{ type: "text" as const, text: `Budget ${budgetId} deleted.` }] };
@@ -428,7 +428,7 @@ function registerGoalTools(
       deadline: z.string().optional().describe("Deadline YYYY-MM-DD"),
     },
     async ({ name, targetAmount, currentAmount, deadline }) => {
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_goals")
         .insert({ name, target_amount: targetAmount, current_amount: currentAmount ?? 0, deadline: deadline ?? null, status: "active", user_id: userId })
         .select().single();
@@ -458,7 +458,7 @@ function registerGoalTools(
       if (deadline !== undefined) u.deadline = deadline;
       if (status !== undefined) u.status = status;
       if (Object.keys(u).length === 0) return { content: [{ type: "text" as const, text: "No fields provided." }] };
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_goals").update(u).eq("id", goalId).select().single();
       if (error) throw new Error(`Failed to update goal: ${error.message}`);
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -480,7 +480,7 @@ function registerGoalTools(
       const g = goal as { current_amount: number; target_amount: number };
       const newAmount = g.current_amount + amount;
       const newStatus = newAmount >= g.target_amount ? "completed" : "active";
-      const { data, error } = await (getClient() as DbClient)
+      const { data, error } = await (getClient() as any)
         .from("openledger_goals").update({ current_amount: newAmount, status: newStatus })
         .eq("id", goalId).select().single();
       if (error) throw new Error(`Failed to contribute: ${error.message}`);
@@ -497,7 +497,7 @@ function registerGoalTools(
         .from("openledger_goals").select("id").eq("id", goalId)
         .eq("user_id", userId).single();
       if (checkError || !existing) throw new Error("Goal not found or access denied");
-      const { error } = await (getClient() as DbClient)
+      const { error } = await (getClient() as any)
         .from("openledger_goals").delete().eq("id", goalId);
       if (error) throw new Error(`Failed to delete goal: ${error.message}`);
       return { content: [{ type: "text" as const, text: `Goal ${goalId} deleted.` }] };

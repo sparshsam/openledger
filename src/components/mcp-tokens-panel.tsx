@@ -79,7 +79,7 @@ export function McpTokensPanel() {
 
       setNewToken(data.token);
       setNewTokenName("");
-      await fetchTokens();
+      await loadTokens();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create token");
     } finally {
@@ -101,7 +101,7 @@ export function McpTokensPanel() {
         throw new Error(data.error || "Failed to revoke token");
       }
 
-      await fetchTokens();
+      await loadTokens();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to revoke token");
     } finally {
