@@ -30,9 +30,17 @@ export async function fetchLatestBackup(): Promise<BackupRecord | null> {
   return data as BackupRecord;
 }
 
+export function classifyBackupError(error: { message: string; code?: string }): "auth" | "server" | "unknown" {
+  const msg = (error.message ?? "").toLowerCase();
+  const code = (error.code ?? "").toLowerCase();
+  if (msg.includes("jwt") || msg.includes("auth") || code === "pgrst301" || code === "42501") return "auth";
+  if (msg.includes("network") || msg.includes("fetch") || msg.includes("econnrefused") || msg.includes("timeout")) return "server";
+  return "unknown";
+}
+
 export async function uploadBackup(
   payload: BackupPayload,
-): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+): Promise<{ ok: true; id: string } | { ok: false; error: string; errorType: "auth" | "server" | "unknown" }> {
   const supabase = createClient();
 
   const { data, error } = await supabase
@@ -44,7 +52,7 @@ export async function uploadBackup(
     .select("id")
     .single();
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: error.message, errorType: classifyBackupError(error) };
   return { ok: true, id: data.id };
 }
 

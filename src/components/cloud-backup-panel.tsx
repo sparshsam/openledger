@@ -61,7 +61,12 @@ export function CloudBackupPanel({ user, ledgerData, onRestore }: Props) {
       const updated = await fetchLatestBackup();
       setBackup(updated);
     } else {
-      setStatus(`Backup failed: ${result.error}`);
+      const msg = result.errorType === "auth"
+        ? "Session expired. Refresh the page and sign in again."
+        : result.errorType === "server"
+          ? "Couldn't reach server. Check your connection and try again."
+          : `Backup failed: ${result.error}`;
+      setStatus(msg);
     }
     setLoading(false);
   };
