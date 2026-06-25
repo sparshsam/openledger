@@ -357,10 +357,10 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 .clear-filters { border: none; background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; }
 .transaction-table-improved { display: flex; flex-direction: column; }
 @media (max-width: 767px) { .transaction-table-improved { overflow-x: auto; -webkit-overflow-scrolling: touch; } }
-.transaction-table-improved .table-head { display: grid; grid-template-columns: 100px 1fr 90px 100px 100px; gap: 10px; padding: 12px 0; color: var(--text-tertiary); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.transaction-table-improved .table-head { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 100px; gap: 10px; padding: 12px 0; color: var(--text-tertiary); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
 .sort-header { display: inline-flex; align-items: center; gap: 4px; border: none; background: transparent; color: var(--text-tertiary); font-size: 11px; font-weight: 700; padding: 0; cursor: pointer; }
 .sort-header:hover { color: var(--text); }
-.transaction-table-improved .table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 100px; gap: 10px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.transaction-table-improved .table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 100px; gap: 10px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
 .transaction-table-improved .table-row strong { font-weight: 600; }
 .transaction-table-improved .table-row .positive { color: var(--positive); }
 .transaction-table-improved .table-row .negative { color: var(--negative); }

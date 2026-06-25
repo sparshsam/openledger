@@ -12,6 +12,38 @@ const currency = new Intl.NumberFormat("en-CA", {
 
 type SortKey = "date" | "amount" | "category" | "account";
 
+const kindBadgeClass: Record<string, string> = {
+  chequing: "badge-chq",
+  "credit-card": "badge-cc",
+  savings: "badge-sav",
+  loan: "badge-loan",
+  other: "badge-misc",
+};
+
+const kindLabel: Record<string, string> = {
+  chequing: "Checking",
+  "credit-card": "Credit",
+  savings: "Savings",
+  loan: "Loan",
+  other: "Misc",
+};
+
+function getAccountKind(accountId: string | null, accounts: Account[]): string {
+  if (!accountId) return "";
+  const account = accounts.find((a) => a.id === accountId);
+  if (!account) return "";
+  const kind = account.kind === "credit" ? "credit-card" : account.kind;
+  return kindLabel[kind] ?? "Account";
+}
+
+function getAccountKindBadge(accountId: string | null, accounts: Account[]): string {
+  if (!accountId) return "";
+  const account = accounts.find((a) => a.id === accountId);
+  if (!account) return "";
+  const kind = account.kind === "credit" ? "credit-card" : account.kind;
+  return kindBadgeClass[kind] ?? "badge-misc";
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-CA", {
     month: "short",
@@ -172,6 +204,7 @@ export function TransactionsView({
             >
               Account <ArrowUpDown size={13} />
             </button>
+            <span role="columnheader">Type</span>
             <button
               className="sort-header"
               onClick={() => toggleSort("amount")}
@@ -190,6 +223,15 @@ export function TransactionsView({
               </strong>
               <span>{t.category}</span>
               <span>{accountName(t.accountId)}</span>
+              <span>
+                {t.accountId ? (
+                  <span className={`account-kind-badge ${getAccountKindBadge(t.accountId, accounts)}`}>
+                    {getAccountKind(t.accountId, accounts)}
+                  </span>
+                ) : (
+                  <span className="account-kind-badge badge-misc" style={{ opacity: 0.4 }}>—</span>
+                )}
+              </span>
               <em className={t.amount < 0 ? "negative" : "positive"}>{currency.format(t.amount)}</em>
             </div>
           ))}
