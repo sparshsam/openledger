@@ -1,42 +1,29 @@
 "use client";
 
-import type { Account, Transaction } from "@/lib/data/types";
-import { computeIncome, computeExpenses, computeNetCashflow, computeNetWorth } from "@/lib/finance/totals";
+import type { Transaction } from "@/lib/data/types";
+import { computeMonthIncome, computeMonthExpenses, computeMonthCashflow } from "@/lib/finance/totals";
 
-const currency = new Intl.NumberFormat("en-CA", {
-  style: "currency",
-  currency: "CAD",
-});
+const currency = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" });
 
-export function DashboardSummary({
-  accounts,
-  transactions,
-}: {
-  accounts: Account[];
-  transactions: Transaction[];
-}) {
-  const income = computeIncome(transactions);
-  const expenses = computeExpenses(transactions);
-  const cashflow = computeNetCashflow(transactions);
-  const netWorth = computeNetWorth(accounts);
-
-  type Tone = "positive" | "negative" | "neutral";
-
-  const cards: Array<{ label: string; amount: number; tone: Tone }> = [
-    { label: "Income", amount: income, tone: income > 0 ? "positive" : "neutral" },
-    { label: "Expenses", amount: expenses, tone: "negative" },
-    { label: "Net cash flow", amount: cashflow, tone: cashflow >= 0 ? "positive" : "negative" },
-    { label: "Net worth", amount: netWorth, tone: netWorth >= 0 ? "positive" : "negative" },
-  ];
+export function DashboardSummary({ transactions, month }: { transactions: Transaction[]; month: string }) {
+  const income = computeMonthIncome(transactions, month);
+  const expenses = computeMonthExpenses(transactions, month);
+  const cashflow = computeMonthCashflow(transactions, month);
 
   return (
-    <div className="summary-grid" role="region" aria-label="Financial summary">
-      {cards.map((card) => (
-        <div className="summary-card" key={card.label}>
-          <span className="summary-label">{card.label}</span>
-          <strong className={card.tone}>{currency.format(card.amount)}</strong>
-        </div>
-      ))}
+    <div className="month-summary">
+      <div className="month-summary-item">
+        <span className="month-summary-value positive">{currency.format(income)}</span>
+        <span className="month-summary-label">Income</span>
+      </div>
+      <div className="month-summary-item">
+        <span className="month-summary-value negative">{currency.format(expenses)}</span>
+        <span className="month-summary-label">Spent</span>
+      </div>
+      <div className="month-summary-item">
+        <span className={"month-summary-value " + (cashflow >= 0 ? "positive" : "negative")}>{currency.format(cashflow)}</span>
+        <span className="month-summary-label">Remaining</span>
+      </div>
     </div>
   );
 }

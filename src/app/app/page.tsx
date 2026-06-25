@@ -61,7 +61,7 @@ import {
 } from "@/lib/data/persistence";
 import { ledgerData } from "@/lib/data/seed";
 import { createScreenshotLedgerData } from "@/lib/data/screenshot-seed";
-import type { Account, AccountKind, Budget, CategoryPattern, Goal, ImportMetadata, LifeCostEvent, MonthlySnapshot, RecurringEntry, Transaction } from "@/lib/data/types";
+import type { Account, AccountKind, Budget, CategoryPattern, Goal, ImportMetadata, LearnedCategory, LifeCostEvent, MonthlySnapshot, RecurringEntry, Transaction } from "@/lib/data/types";
 import { PwaRegister } from "@/components/pwa-register";
 import { TransactionsView } from "@/components/transactions-view";
 import { SearchView } from "@/components/search-view";
@@ -75,6 +75,10 @@ import { DataManagementPanel } from "@/components/data-management-panel";
 import { McpTokensPanel } from "@/components/mcp-tokens-panel";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { budgetUtilization, remainingBudget, isOverBudget } from "@/lib/finance/budgets";
+import { LedgerReport } from "@/components/ledger-report";
+import { ImportFlow } from "@/components/import-flow";
+import { AccountsView } from "@/components/accounts-view";
+import { recordCategoryLearning, loadCategoryLearnings } from "@/lib/data/persistence";
 import { goalProgress } from "@/lib/finance/goals";
 
 const currency = new Intl.NumberFormat("en-CA", {
@@ -82,7 +86,7 @@ const currency = new Intl.NumberFormat("en-CA", {
   currency: "CAD",
 });
 
-const TABS = ["Ledger", "Transactions", "Recurring", "Goals", "Settings"] as const;
+const TABS = ["Ledger", "Transactions", "Accounts", "Goals", "Settings"] as const;
 type Tab = (typeof TABS)[number];
 
 const accountIcons: Record<AccountKind, typeof Banknote> = {
@@ -181,6 +185,13 @@ export default function Home() {
   const [csvMapping, setCsvMapping] = useState<CsvMapping>({});
   const [defaultImportAccountId, setDefaultImportAccountId] = useState("chequing");
   const [showImportModal, setShowImportModal] = useState(false);
+  const [activeMonth, setActiveMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [activeAccountFilter, setActiveAccountFilter] = useState<string | null>(null);
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string | null>(null);
+  const [categoryLearnings, setCategoryLearnings] = useState<LearnedCategory[]>([]);
   const [importCreateMode, setImportCreateMode] = useState(false);
   const [importCreateModeName, setImportCreateModeName] = useState("");
   const [importCreateModeKind, setImportCreateModeKind] = useState<AccountKind>("chequing");
@@ -332,6 +343,7 @@ export default function Home() {
         result.warning ??
           (result.source === "saved" ? "Local ledger restored from this browser." : "Demo ledger loaded. Changes will save locally."),
       );
+      setCategoryLearnings(loadCategoryLearnings(window.localStorage));
       setHydrated(true);
     }, 0);
   }, []);
@@ -743,150 +755,33 @@ export default function Home() {
         {/* ════ LEDGER (Home) ════ */}
         {activeTab === "Ledger" ? (
           <ErrorBoundary key="ledger">
-          <>
-            {/* Hero — on the canvas */}
-            <div className="hero">
-              <p className="hero-headline">{currency.format(netWorth)}</p>
-              <p className="hero-tagline">
-                {monthlyIncome > monthlyExpense
-                  ? "Your ledger is in order."
-                  : "Take a moment to review your recent entries."}
-              </p>
-              <p className="hero-sub">
-                Net worth {"\u2022"} {monthlyIncome > monthlyExpense
-                  ? "+" + currency.format(monthlyIncome - monthlyExpense) + " this month"
-                  : currency.format(monthlyExpense - monthlyIncome) + " overspent this month"}
-              </p>
-            </div>
-
-            {/* Quick actions — pill row */}
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-3xl)', flexWrap: 'wrap' }}>
-              <button className="pill pill-primary" onClick={() => setActiveTab("Transactions")} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                Record transaction
-                <Plus size={16} style={{ strokeWidth: 2.5 }} />
-              </button>
-              <button className="pill pill-primary" onClick={() => setShowImportModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                Import transactions
-                <Upload size={16} />
-              </button>
-              <button className="pill pill-secondary" onClick={() => downloadLedgerExport(currentLedgerData, importedTransactions, importMetadata)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                Export ledger
-                <Download size={16} />
-              </button>
-              <button className="pill pill-secondary" onClick={() => setActiveTab("Recurring")} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                Recurring entries
-                <ReceiptText size={16} />
-              </button>
-            </div>
-
-            {/* Accounts strip — border to border */}
-            <div className="data-strip" role="list" aria-label="Accounts">
-              {visibleAccountsWithBalances.map((a) => (
-                <div key={a.id} className="data-strip-item" role="listitem">
-                  <div className="data-strip-label">{a.name}</div>
-                  <div className={"data-strip-value " + (a.balance < 0 ? "negative" : "positive")}>
-                    {currency.format(a.balance)}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Budget progress — if any */}
-            {currentMonthBudgets.length > 0 ? (
-              <section style={{ marginTop: 'var(--space-3xl)' }}>
-                <h2 className="section-title">Spending plans</h2>
-                {currentMonthBudgets.map((b) => {
-                  const util = budgetUtilization(b, transactions);
-                  const remaining = remainingBudget(b, transactions);
-                  const over = isOverBudget(b, transactions);
-                  return (
-                    <div key={b.id} className="budget-card">
-                      <div className="budget-card-header">
-                        <h3 className="budget-card-category">{b.category}</h3>
-                        <span className={"budget-card-remaining " + (over ? "negative" : util > 80 ? "warning" : "positive")}>
-                          {remaining >= 0 ? "$" + remaining.toFixed(0) + " left" : "$" + Math.abs(remaining).toFixed(0) + " over"}
-                        </span>
-                      </div>
-                      <div className="progress-track">
-                        <div className={"progress-fill " + (over ? "over" : util > 80 ? "warn" : "ok")} style={{ width: Math.min(util, 100) + "%" }} />
-                      </div>
-                      <div className="budget-card-detail">
-                        <span>{currency.format(b.amount)} budgeted</span>
-                        <span>{util}% used</span>
-                      </div>
-                    </div>
-                  );
+          <div style={{ paddingTop: "var(--space-xl)" }}>
+                        {/* Month filter + Import button */}
+            <div className="filter-bar">
+              <select className="pill-select" value={activeMonth} onChange={(e) => setActiveMonth(e.target.value)}>
+                {Array.from({ length: 12 }, (_, i) => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() - i);
+                  const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                  return <option key={m} value={m}>{d.toLocaleString("default", { month: "long", year: "numeric" })}</option>;
                 })}
-              </section>
-            ) : null}
+              </select>
+              <button className="pill pill-accent" onClick={() => setShowImportModal(true)}>
+                Import <Upload size={14} />
+              </button>
+            </div>
 
-            {/* Goal progress — if any */}
-            {goals.length > 0 ? (
-              <section style={{ marginTop: 'var(--space-3xl)' }}>
-                <h2 className="section-title">Financial milestones</h2>
-                {goals.slice(0, 5).map((g) => {
-                  const progress = goalProgress(g);
-                  return (
-                    <div key={g.id} className="goal-card">
-                      <div className="goal-card-header">
-                        <h3 className="goal-card-name">{g.name}</h3>
-                        <span className="goal-card-pct">{progress}%</span>
-                      </div>
-                      <div className="progress-track">
-                        <div className="progress-fill ok" style={{ width: Math.min(progress, 100) + "%" }} />
-                      </div>
-                      <div className="goal-card-stats">
-                        <span>{currency.format(g.currentAmount)} of {currency.format(g.targetAmount)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </section>
-            ) : null}
-
-            {/* Recent transactions — editorial list */}
-            <section style={{ marginTop: 'var(--space-3xl)' }}>
-              <h2 className="section-title">Recent entries</h2>
-              {recentTransactions.length === 0 ? (
-                <div className="empty-state">
-                  <strong>Your ledger is empty</strong>
-                  <p>Record your first transaction to start building your financial record.</p>
-                </div>
-              ) : (
-                <div className="editorial-list">
-                  {recentTransactions.map((t) => (
-                    <div key={t.id}>
-                      <div className="editorial-row">
-                        <div>
-                          <div className="editorial-row-title">{t.description}</div>
-                          <div className="editorial-row-meta">{t.category} {"\u2022"} {t.date}</div>
-                        </div>
-                        <div className="editorial-row-actions" style={{ gap: 4 }}>
-                          <button
-                            onClick={() => setExpandedReceiptTxId(expandedReceiptTxId === t.id ? null : t.id)}
-                            title="Receipts"
-                            style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 6px", cursor: "pointer", color: "var(--text-tertiary)", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4 }}
-                          >
-                            <ReceiptText size={12} />
-                          </button>
-                        </div>
-                        <span className={"editorial-row-value " + (t.amount > 0 ? "positive" : "negative")}>
-                          {currency.format(t.amount)}
-                        </span>
-                      </div>
-                      {expandedReceiptTxId === t.id ? (
-                        <div style={{ padding: "8px 0 12px 56px" }}>
-                          <ReceiptGallery transactionId={t.id} />
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          </>
+            <LedgerReport
+              transactions={transactions}
+              accounts={accounts}
+              budgets={budgets}
+              month={activeMonth}
+              activeCategory={activeCategoryFilter}
+              activeAccountId={activeAccountFilter}
+              onCategoryFilter={setActiveCategoryFilter}
+            />
+          </div>
           </ErrorBoundary>
-
 
         ) : activeTab === "Transactions" ? (
           <ErrorBoundary key="transactions">
@@ -946,15 +841,14 @@ export default function Home() {
 
 
 
-        ) : activeTab === "Recurring" ? (
-          <ErrorBoundary key="recurring">
+        ) : activeTab === "Accounts" ? (
+          <ErrorBoundary key="accounts">
           <div className="narrow">
-            <RecurringPanel
-              recurringEntries={recurringEntries}
-              accounts={activeAccounts}
-              onAdd={saveRecurringEntry}
-              onUpdate={saveRecurringEntry}
-              onDelete={deleteRecurringEntry}
+            <AccountsView
+              accounts={accounts}
+              transactions={transactions}
+              activeAccountId={activeAccountFilter}
+              onSelectAccount={setActiveAccountFilter}
             />
           </div>
           </ErrorBoundary>
@@ -1123,125 +1017,23 @@ export default function Home() {
       {/* Hidden file input for CSV import */}
       <input ref={csvFileRef} type="file" accept=".csv,.tsv,.txt" onChange={handleCsvFile} style={{ display: 'none' }} />
 
-      {/* Import transactions modal (renders outside tab switch) */}
+      {/* Import transactions modal */}
       {showImportModal ? (
-        <div className="sheet-overlay" onClick={() => { setShowImportModal(false); setImportCreateMode(false); }}>
-          <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>Import transactions</h2>
-              <button className="pill pill-ghost" onClick={() => { setShowImportModal(false); setImportCreateMode(false); }} style={{ border: 0, background: 'transparent', cursor: 'pointer', fontSize: 16 }} aria-label="Close">✕</button>
-            </div>
-
-            {/* Step 1: Account selection */}
-            <div style={{ marginBottom: 'var(--space-lg)' }}>
-              <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Account</label>
-              {!importCreateMode ? (
-                <>
-                  <select
-                    value={defaultImportAccountId}
-                    onChange={(e) => setDefaultImportAccountId(e.target.value)}
-                    className="import-modal-select"
-                  >
-                    {activeAccounts.length === 0 ? (
-                      <option value="">No accounts yet</option>
-                    ) : (
-                      activeAccounts.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} ({accountKindLabel(a.kind)})
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  <button onClick={() => setImportCreateMode(true)} style={{ marginTop: 8, fontSize: 13, padding: '6px 14px', border: '1px solid var(--border)', background: 'transparent', borderRadius: 999, cursor: 'pointer', color: 'var(--accent)' }}>
-                    + New account
-                  </button>
-                </>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <input
-                    value={importCreateModeName}
-                    onChange={(e) => setImportCreateModeName(e.target.value)}
-                    placeholder="Account name (e.g. TD Chequing)"
-                    className="import-modal-input"
-                  />
-                  <select
-                    value={importCreateModeKind}
-                    onChange={(e) => setImportCreateModeKind(e.target.value as AccountKind)}
-                    className="import-modal-select"
-                  >
-                    {accountKindOptions.map((k) => (
-                      <option key={k.value} value={k.value}>{k.label}</option>
-                    ))}
-                  </select>
-                  <div className="form-actions">
-                    <button onClick={() => {
-                      if (!importCreateModeName.trim()) { setImportNotice("Enter an account name."); return; }
-                      const newAccount: Account = {
-                        id: `account-${crypto.randomUUID()}`,
-                        name: importCreateModeName.trim(),
-                        kind: importCreateModeKind,
-                        subtitle: accountKindOptions.find((k) => k.value === importCreateModeKind)?.label ?? "Account",
-                        balance: 0, currency: "CAD",
-                      };
-                      setAccounts((prev) => [newAccount, ...prev]);
-                      setDefaultImportAccountId(newAccount.id);
-                      setImportCreateMode(false);
-                      setImportCreateModeName("");
-                    }} style={{ minHeight: 44, padding: '10px 24px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                      Create & select
-                    </button>
-                    <button onClick={() => setImportCreateMode(false)} style={{ minHeight: 44, padding: '10px 24px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', fontSize: 14, cursor: 'pointer' }}>
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* File upload */}
-            <div style={{ marginBottom: 'var(--space-lg)' }}>
-              <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>CSV file</label>
-              {!importParsedInfo ? (
-                <button onClick={() => csvFileRef.current?.click()} style={{ width: '100%', padding: '24px', borderRadius: 8, border: '2px dashed var(--border)', background: 'var(--surface)', fontSize: 14, cursor: 'pointer', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                  <Upload size={20} style={{ display: 'block', margin: '0 auto 8px' }} />
-                  Choose CSV or TSV file
-                </button>
-              ) : (
-                <div style={{ padding: 12, borderRadius: 8, background: 'var(--surface-secondary)', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{importParsedInfo.fileName} — {importParsedInfo.count} rows</span>
-                  <button onClick={() => { setParsedCsv(null); setImportParsedInfo(null); setCsvMapping({}); }} style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--negative)', fontSize: 13 }}>Remove</button>
-                </div>
-              )}
-            </div>
-
-            {/* Import button */}
-            {importParsedInfo && defaultImportAccountId ? (
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 'var(--space-md)' }}>
-                <p className="gentle-help" style={{ marginBottom: 12 }}>
-                  {importParsedInfo.count} transactions will be added to{" "}
-                  <strong>{accounts.find((a) => a.id === defaultImportAccountId)?.name ?? "selected account"}</strong>.
-                </p>
-                <div className="form-actions">
-                  <button disabled={importLoading} onClick={async () => {
-                    setImportLoading(true);
-                    saveImportedTransactions();
-                    if (user) { setCloudBannerCount(importParsedInfo.count); setShowCloudBanner(true); setCloudBannerDismissed(false); }
-                    setImportLoading(false);
-                    setShowImportModal(false);
-                    setImportParsedInfo(null);
-                    setActiveTab("Transactions");
-                  }} style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                    <Upload size={16} style={{ marginRight: 6 }} />
-                    {importLoading ? "Importing..." : `Import ${importParsedInfo.count} transactions`}
-                  </button>
-                  <button onClick={() => { setShowImportModal(false); setImportCreateMode(false); }} style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', fontSize: 14, cursor: 'pointer' }}>
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
+        <ImportFlow
+          accounts={accounts}
+          transactions={transactions}
+          learnings={categoryLearnings}
+          onImport={(txns, meta) => {
+            setTransactions((prev) => [...txns, ...prev]);
+            setImportMetadata((prev) => [meta, ...prev]);
+            setShowImportModal(false);
+            setActiveTab("Ledger");
+          }}
+          onRecordLearning={(pattern, parent, child) => {
+            setCategoryLearnings((prev) => recordCategoryLearning(window.localStorage, prev, pattern, parent, child));
+          }}
+          onClose={() => setShowImportModal(false)}
+        />
       ) : null}
 
       </main>
@@ -1310,7 +1102,7 @@ export default function Home() {
           const icons: Record<string, React.ReactNode> = {
             Ledger: <BookOpen size={20} />,
             Transactions: <ArrowRightLeft size={20} />,
-            Recurring: <Repeat size={20} />,
+            Accounts: <Landmark size={20} />,
             Goals: <Target size={20} />,
             Settings: <Settings size={20} />,
           };
