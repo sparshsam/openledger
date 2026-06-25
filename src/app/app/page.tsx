@@ -721,26 +721,12 @@ export default function Home() {
         {activeTab === "Ledger" ? (
           <ErrorBoundary key="ledger">
           <div style={{ paddingTop: "var(--space-xl)" }}>
-                        {/* Month filter + Import button */}
-            <div className="filter-bar">
-              <select className="pill-select" value={activeMonth} onChange={(e) => setActiveMonth(e.target.value)}>
-                {Array.from({ length: 12 }, (_, i) => {
-                  const d = new Date();
-                  d.setMonth(d.getMonth() - i);
-                  const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                  return <option key={m} value={m}>{d.toLocaleString("default", { month: "long", year: "numeric" })}</option>;
-                })}
-              </select>
-              <button className="pill pill-accent" onClick={() => setShowImportModal(true)}>
-                Import <Upload size={14} />
-              </button>
-            </div>
-
             <LedgerReport
               transactions={transactions}
               accounts={accounts}
               budgets={budgets}
               month={activeMonth}
+              onMonthChange={setActiveMonth}
               activeCategory={activeCategoryFilter}
               activeAccountId={activeAccountFilter}
               onCategoryFilter={setActiveCategoryFilter}

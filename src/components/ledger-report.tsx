@@ -1,20 +1,23 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Account, Transaction, Budget } from "@/lib/data/types";
 import {
   computeMonthIncome,
   computeMonthExpenses,
   computeMonthCashflow,
-  computeMonthOverMonth,
-  computeNetWorth,
   computeEffectiveNetWorth,
+  accountEffectiveBalance,
 } from "@/lib/finance/totals";
 import { categoryTotals, monthlyTotals } from "@/lib/finance/grouping";
 import { budgetUtilization, remainingBudget, isOverBudget } from "@/lib/finance/budgets";
+import { MonthPicker } from "@/components/month-picker";
+import { ComparisonPills, COMPARISON_RANGES } from "@/components/comparison-pills";
+import { AllMonthsBarChart } from "@/components/all-months-chart";
+import type { ComparisonRange, ComparisonResult } from "@/lib/finance/comparisons";
+import { computeExpenseComparison } from "@/lib/finance/comparisons";
 import { IncomeVsExpensesChart } from "@/components/charts/income-vs-expenses";
 import { SpendingByCategoryChart } from "@/components/charts/spending-by-category";
-import { MonthlyTrendChart } from "@/components/charts/monthly-trend";
 
 const currency = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" });
 
@@ -23,6 +26,7 @@ type LedgerReportProps = {
   accounts: Account[];
   budgets: Budget[];
   month: string;
+  onMonthChange: (month: string) => void;
   activeCategory: string | null;
   activeAccountId: string | null;
   onCategoryFilter: (category: string | null) => void;
@@ -33,10 +37,13 @@ export function LedgerReport({
   accounts,
   budgets,
   month,
+  onMonthChange,
   activeCategory,
   activeAccountId,
   onCategoryFilter,
 }: LedgerReportProps) {
+  const [comparisonRange, setComparisonRange] = useState<ComparisonRange>("last_month");
+
   // Filter by month AND account
   const filteredTxns = useMemo(() => {
     let txns = transactions;
@@ -52,7 +59,7 @@ export function LedgerReport({
   const income = computeMonthIncome(monthlyTxns, month);
   const expenses = computeMonthExpenses(monthlyTxns, month);
   const remaining = computeMonthCashflow(monthlyTxns, month);
-  const vsLastMonth = computeMonthOverMonth(filteredTxns, month);
+  const comparisonResult = computeExpenseComparison(filteredTxns, month, comparisonRange);
 
   const categories = useMemo(() => {
     const expenseTxns = monthlyTxns.filter((t) => t.amount < 0);
@@ -70,7 +77,7 @@ export function LedgerReport({
   const catData = useMemo(() => {
     return categories.map(({ category, spent }) => ({
       category,
-      total: -spent,  // convert back to negative for chart
+      total: -spent,
     }));
   }, [categories]);
 
@@ -84,53 +91,71 @@ export function LedgerReport({
     }));
   }, [monthlyTxns]);
 
-  const trendData = useMemo(() => {
-    return monthlyTotals(filteredTxns)
-      .slice(-6)
-      .map((m) => ({
-        month: m.month,
-        income: m.income,
-        expense: m.expense,
-        net: m.income - m.expense,
-      }));
-  }, [filteredTxns]);
+  const monthLabel = new Date(`${month}-01T12:00:00`).toLocaleString("en-CA", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <>
+      {/* Report Header */}
+      <div className="report-header">
+        <div className="report-header-left">
+          <h1 className="text-3xl sm:text-4xl font-black" style={{ color: "var(--text-primary)" }}>
+            {monthLabel}
+          </h1>
+          <MonthPicker value={month} onChange={onMonthChange} />
+        </div>
+      </div>
+
       {/* Summary Strip — numbers first */}
       <div className="month-summary">
         <div className="month-summary-item">
-          <span className="month-summary-value positive">
+          <span className="month-summary-value text-4xl sm:text-5xl font-black positive">
             {currency.format(income)}
           </span>
-          <span className="month-summary-label">Income</span>
+          <span className="month-summary-label text-xs font-bold tracking-wider uppercase">
+            Income
+          </span>
         </div>
         <div className="month-summary-item">
-          <span className="month-summary-value negative">
+          <span className="month-summary-value text-4xl sm:text-5xl font-black negative">
             {currency.format(expenses)}
           </span>
-          <span className="month-summary-label">Spent</span>
+          <span className="month-summary-label text-xs font-bold tracking-wider uppercase">
+            Spent
+          </span>
         </div>
         <div className="month-summary-item">
           <span
             className={
-              "month-summary-value " + (remaining >= 0 ? "positive" : "negative")
+              "month-summary-value text-4xl sm:text-5xl font-black " +
+              (remaining >= 0 ? "positive" : "negative")
             }
           >
             {currency.format(remaining)}
           </span>
-          <span className="month-summary-label">Remaining</span>
+          <span className="month-summary-label text-xs font-bold tracking-wider uppercase">
+            Remaining
+          </span>
         </div>
       </div>
 
-      {vsLastMonth !== null && (
-        <div className="month-comparison">
-          <span className={vsLastMonth > 0 ? "negative" : "positive"}>
-            {vsLastMonth > 0 ? "▲" : "▼"} {Math.abs(vsLastMonth)}% vs
-            last month
-          </span>
-        </div>
-      )}
+      {/* Comparison strip */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 8 }}>
+        <ComparisonPills active={comparisonRange} onChange={setComparisonRange} />
+        {comparisonResult && (
+          <p className="comparison-text" style={{ fontSize: 15, marginTop: 4 }}>
+            <span className={comparisonResult.direction === "up" ? "negative" : "positive"}>
+              {comparisonResult.direction === "up" ? "▲" : "▼"}
+            </span>
+            {" "}
+            {currency.format(Math.abs(comparisonResult.absChange))} (
+            {Math.abs(comparisonResult.pctChange ?? 0)}%){" "}
+            {comparisonResult.label}
+          </p>
+        )}
+      </div>
 
       {/* Where Did My Money Go? — signature section */}
       <section className="report-section">
@@ -168,11 +193,19 @@ export function LedgerReport({
         </div>
       </section>
 
-      {/* Charts */}
+      {/* All-Months Chart — full width */}
+      <section className="report-section">
+        <AllMonthsBarChart
+          transactions={filteredTxns}
+          activeMonth={month}
+          onSelectMonth={onMonthChange}
+        />
+      </section>
+
+      {/* Charts Grid */}
       <div className="charts-grid">
         <IncomeVsExpensesChart data={periodData} />
         <SpendingByCategoryChart data={catData} />
-        <MonthlyTrendChart data={trendData} />
       </div>
 
       {/* Budget Progress */}
@@ -209,13 +242,35 @@ export function LedgerReport({
         </section>
       )}
 
-      {/* Net Worth — secondary */}
-      <div className="net-worth-line">
-        <span className="month-summary-label">Net worth</span>
-        <span className="month-summary-value">
-          {currency.format(netWorth)}
-        </span>
-      </div>
+      {/* Net Worth — enlarged */}
+      <section className="net-worth-section">
+        <div className="net-worth-main">
+          <span className="net-worth-label">Net worth</span>
+          <span className="net-worth-value text-3xl sm:text-4xl font-black">
+            {currency.format(netWorth)}
+          </span>
+        </div>
+        <div className="net-worth-accounts">
+          {accounts
+            .filter((a) => !a.archivedAt)
+            .map((a) => {
+              const balance = accountEffectiveBalance(a, monthlyTxns);
+              return (
+                <div key={a.id} className="net-worth-account-row">
+                  <span className="net-worth-account-name">{a.name}</span>
+                  <span
+                    className={
+                      "net-worth-account-balance " +
+                      (balance >= 0 ? "positive" : "negative")
+                    }
+                  >
+                    {currency.format(balance)}
+                  </span>
+                </div>
+              );
+            })}
+        </div>
+      </section>
     </>
   );
 }
