@@ -184,6 +184,9 @@ export default function Home() {
   const [importCreateMode, setImportCreateMode] = useState(false);
   const [importParsedInfo, setImportParsedInfo] = useState<{ count: number; fileName: string } | null>(null);
   const [importLoading, setImportLoading] = useState(false);
+  const [showCloudBanner, setShowCloudBanner] = useState(false);
+  const [cloudBannerCount, setCloudBannerCount] = useState(0);
+  const [cloudBannerDismissed, setCloudBannerDismissed] = useState(false);
   const [currentImportId, setCurrentImportId] = useState("");
   const [importNotice, setImportNotice] = useState("No CSV loaded yet.");
   const [transactionForm, setTransactionForm] = useState<TransactionFormValues>({
@@ -485,6 +488,25 @@ export default function Home() {
       setStorageNotice("Cloud data deleted. Sign out and back in to fully reset.");
     }
     setDeleteConfirm("");
+  }
+
+  async function saveToCloud(count: number) {
+    if (!user) return;
+    const { uploadBackup } = await import("@/lib/supabase/backup");
+    const payload = {
+      accounts: ledgerData.accounts,
+      transactions: ledgerData.transactions,
+      categories: [],
+      budgets: ledgerData.budgets,
+      goals: ledgerData.goals,
+    };
+    const result = await uploadBackup(payload);
+    if (result.ok) {
+      setStorageNotice(`${count} transactions backed up to cloud.`);
+    } else {
+      setStorageNotice("Cloud backup failed. You can retry from Settings.");
+    }
+    setShowCloudBanner(false);
   }
 
   function handleRestoreFromCloud(payload: { accounts: unknown[]; transactions: unknown[]; budgets?: unknown[]; goals?: unknown[]; recurringEntries?: unknown[] }) {
@@ -1033,15 +1055,25 @@ export default function Home() {
                       </p>
                       <div className="form-actions">
                         <button
-                          disabled={!defaultImportAccountId}
-                          onClick={() => {
+                          disabled={!defaultImportAccountId || importLoading}
+                          onClick={async () => {
+                            setImportLoading(true);
+                            // Save locally immediately
+                            saveImportedTransactions();
+                            // Show cloud save banner (only if signed in)
+                            if (user) {
+                              setCloudBannerCount(importParsedInfo?.count ?? 0);
+                              setShowCloudBanner(true);
+                              setCloudBannerDismissed(false);
+                            }
+                            setImportLoading(false);
                             setShowImportModal(false);
                             setImportParsedInfo(null);
                             setActiveTab("Transactions");
                           }}
                           style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                           <Upload size={16} style={{ marginRight: 6 }} />
-                          Import {importParsedInfo.count} transactions
+                          {importLoading ? "Importing..." : `Import ${importParsedInfo.count} transactions`}
                         </button>
                         <button onClick={() => { setShowImportModal(false); setImportCreateMode(false); }} style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', fontSize: 14, cursor: 'pointer' }}>
                           Cancel
@@ -1231,6 +1263,29 @@ export default function Home() {
           </ErrorBoundary>
         ) : null}
       </main>
+
+      {/* Cloud save banner */}
+      {showCloudBanner && user && !cloudBannerDismissed ? (
+        <div className="cloud-banner">
+          <div className="cloud-banner-content">
+            <span className="cloud-banner-text">
+              <strong>{cloudBannerCount}</strong> transaction{cloudBannerCount !== 1 ? "s" : ""} saved locally.
+              {user ? " Back up to the cloud?" : ""}
+            </span>
+            <div className="cloud-banner-actions">
+              {user ? (
+                <button className="cloud-banner-btn cloud-banner-btn-primary" onClick={() => saveToCloud(cloudBannerCount)}>
+                  <Upload size={14} />
+                  Save to cloud
+                </button>
+              ) : null}
+              <button className="cloud-banner-btn cloud-banner-btn-ghost" onClick={() => { setShowCloudBanner(false); setCloudBannerDismissed(true); }}>
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Storage live region */}
       <div className="storage-live-region" aria-live="polite" aria-atomic="true" role="status">

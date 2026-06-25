@@ -332,6 +332,60 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 .legal-body code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px; background: var(--surface-secondary); padding: 1px 6px; border-radius: 4px; }
 .legal-updated { font-size: 13px; color: var(--text-tertiary); margin-bottom: 32px; }
 
+/* ── Cloud save banner ── */
+.cloud-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 300;
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+.cloud-banner-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cloud-banner-text {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.cloud-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.cloud-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+.cloud-banner-btn-primary {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+.cloud-banner-btn-primary:hover { background: rgba(255,255,255,0.3); }
+.cloud-banner-btn-ghost {
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+.cloud-banner-btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+
 /* ── Error boundary fallback ── */
 .error-boundary-fallback {
   padding: 32px 24px;
