@@ -1147,9 +1147,15 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 }
 
 .month-summary-value {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 900;
   line-height: 1.1;
+}
+
+@media (min-width: 768px) {
+  .month-summary-value {
+    font-size: 48px;
+  }
 }
 
 .month-summary-value.positive { color: #2a7a2a; }
@@ -1165,13 +1171,61 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 }
 
 .month-comparison {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   padding: var(--space-sm) 0;
 }
 
 .month-comparison .positive { color: #2a7a2a; }
 .month-comparison .negative { color: #c94444; }
+
+/* ══ Report Header ══ */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.report-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.report-title {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .report-title {
+    font-size: 36px;
+  }
+}
+
+/* ══ Comparison Pills container ══ */
+.comparison-pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-lg);
+}
+
+.comparison-text {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 4px;
+  padding-bottom: var(--space-md);
+}
+
+.comparison-text .positive { color: #2a7a2a; }
+.comparison-text .negative { color: #c94444; }
 
 /* ══ Category Breakdown ══ */
 .category-breakdown {
@@ -1261,15 +1315,70 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 .budget-fill.warn { background: #d4a017; }
 .budget-fill.over { background: #c94444; }
 
-/* ══ Net Worth Line ══ */
-.net-worth-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-lg) 0;
+/* ══ Net Worth Section ══ */
+.net-worth-section {
+  padding: var(--space-xl) 0;
   border-top: 1px solid var(--border);
   margin-top: var(--space-xl);
 }
+
+.net-worth-main {
+  margin-bottom: var(--space-md);
+}
+
+.net-worth-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.net-worth-value {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+@media (min-width: 768px) {
+  .net-worth-value {
+    font-size: 42px;
+  }
+}
+
+.net-worth-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 400px;
+}
+
+.net-worth-account-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.net-worth-account-row:last-child {
+  border-bottom: none;
+}
+
+.net-worth-account-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.net-worth-account-balance {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.net-worth-account-balance.positive { color: #2a7a2a; }
+.net-worth-account-balance.negative { color: #c94444; }
 
 /* ══ Accounts List ══ */
 .accounts-list {
@@ -1425,5 +1534,13 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 
 /* ══ Report Sections ══ */
 .report-section {
-  padding: var(--space-lg) 0;
+  padding: var(--space-xl) 0;
+}
+
+/* ══ Chart Empty State ══ */
+.chart-empty {
+  text-align: center;
+  padding: var(--space-xl) 0;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
