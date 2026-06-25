@@ -259,6 +259,27 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 .managed-account .tx-action-btn { padding: 6px 12px; font-size: 11px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; min-height: 44px; }
 .managed-account .tx-action-btn:hover { background: var(--surface-secondary); }
 .managed-account .tx-action-btn.danger:hover { color: var(--negative); border-color: rgba(196,74,74,0.3); }
+
+/* ── Account kind badges ── */
+.managed-account-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.managed-account-info strong { display: block; font-size: 14px; font-weight: 600; }
+.managed-account-info small { font-size: 12px; color: var(--text-secondary); }
+.account-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+.account-kind-badge.badge-chq { background: #e0edff; color: #0066cc; }
+.account-kind-badge.badge-cc { background: #ffe0e0; color: #cc0000; }
+.account-kind-badge.badge-sav { background: #e0f5e0; color: #006600; }
+.account-kind-badge.badge-loan { background: #fff0d0; color: #cc6600; }
+.account-kind-badge.badge-misc { background: #e8e8e8; color: #666666; }
+
 /* ══ Auth panel ══ */
 .auth-section { margin-top: var(--space-lg); }
 

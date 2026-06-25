@@ -97,13 +97,11 @@ const accountIcons: Record<AccountKind, typeof Banknote> = {
 };
 
 const accountKindOptions: Array<{ value: AccountKind; label: string }> = [
-  { value: "cash", label: "Cash" },
-  { value: "chequing", label: "Chequing" },
+  { value: "chequing", label: "Checking" },
+  { value: "credit-card", label: "Credit" },
   { value: "savings", label: "Savings" },
-  { value: "credit-card", label: "Credit card" },
   { value: "loan", label: "Loan" },
-  { value: "investment", label: "Investment" },
-  { value: "other", label: "Other" },
+  { value: "other", label: "Misc" },
 ];
 
 const categoryOptions = [
@@ -953,7 +951,9 @@ export default function Home() {
               <div className="settings-section-content">
                 <div className="settings-panel-content">
                   <div className="settings-panel-section">
-                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Manage your ledger accounts.</p>
+                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
+                      Accounts track where your money lives — checking, credit, savings, or loan. Every transaction you import or create belongs to an account, which keeps your ledger coherent and your balances accurate.
+                    </p>
                     <AccountManagement values={accountForm} accounts={accountsWithBalances} error={accountError}
                       onChange={setAccountForm} onSave={saveAccount}
                       onCancel={() => { setAccountForm({ name: "", kind: "chequing", subtitle: "", balance: "" }); setAccountError(""); }}
@@ -1116,8 +1116,18 @@ function normalizeAccountKind(kind: AccountKind): AccountKind {
 
 function accountKindLabel(kind: AccountKind) {
   if (kind === "crypto") return "Investment";
+  if (kind === "cash") return "Cash";
+  if (kind === "investment") return "Investment";
   return accountKindOptions.find((item) => item.value === normalizeAccountKind(kind))?.label ?? "Account";
 }
+
+const accountKindBadgeClass: Record<string, string> = {
+  chequing: "badge-chq",
+  "credit-card": "badge-cc",
+  savings: "badge-sav",
+  loan: "badge-loan",
+  other: "badge-misc",
+};
 
 function TransactionTable({ transactions, accountsWithBalances, selectedAccount, onEdit, onDuplicate, onDelete }: { transactions: Transaction[]; accountsWithBalances: Account[]; selectedAccount: Account; onEdit: (t: Transaction) => void; onDuplicate: (t: Transaction) => void; onDelete: (t: Transaction) => void }) {
   const rows = transactions.slice(0, 50);
@@ -1372,10 +1382,13 @@ function AccountManagement({
 }) {
   return (
     <div className="ledger-form">
+      <p className="gentle-help" style={{ marginBottom: 16, lineHeight: 1.5 }}>
+        Accounts track where your money lives. Every transaction belongs to an account.
+      </p>
       <div className="form-grid account-form-grid">
         <label>
           <span>Name</span>
-          <input value={values.name} maxLength={100} onChange={(event) => onChange({ ...values, name: event.target.value })} placeholder="Everyday card" />
+          <input value={values.name} maxLength={100} onChange={(event) => onChange({ ...values, name: event.target.value })} placeholder="TD Chequing" />
         </label>
         <label>
           <span>Type</span>
@@ -1411,10 +1424,13 @@ function AccountManagement({
         ) : (
           accounts.map((account) => (
             <div key={account.id} className={account.archivedAt ? "managed-account archived" : "managed-account"}>
-              <span>
+              <span className="managed-account-info">
                 <strong>{account.name}</strong>
+                <span className={`account-kind-badge ${accountKindBadgeClass[normalizeAccountKind(account.kind)] ?? "badge-misc"}`}>
+                  {accountKindLabel(account.kind)}
+                </span>
                 <small>
-                  {accountKindLabel(account.kind)} · {account.archivedAt ? "Archived" : currency.format(account.balance)}
+                  {account.archivedAt ? "Archived" : currency.format(account.balance)}
                 </small>
               </span>
               <span className="row-actions">
