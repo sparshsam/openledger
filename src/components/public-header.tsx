@@ -1,8 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export function PublicHeader() {
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) setSignedIn(true);
+    });
+  }, []);
+
   return (
     <header
       style={{
@@ -25,7 +36,7 @@ export function PublicHeader() {
         }}
       >
         <Link
-          href="/"
+          href={signedIn ? "/app" : "/"}
           style={{
             fontSize: 18,
             fontWeight: 700,
@@ -39,23 +50,43 @@ export function PublicHeader() {
 
         <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <NavLink href="/about">About</NavLink>
-          <Link
-            href="/account"
-            style={{
-              marginLeft: 8,
-              padding: "8px 20px",
-              borderRadius: 999,
-              border: "none",
-              background: "var(--accent)",
-              color: "#fff",
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: "none",
-              cursor: "pointer",
-            }}
-          >
-            Sign in
-          </Link>
+          {signedIn ? (
+            <Link
+              href="/app"
+              style={{
+                marginLeft: 8,
+                padding: "8px 20px",
+                borderRadius: 999,
+                border: "none",
+                background: "var(--accent)",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              Ledger
+            </Link>
+          ) : (
+            <Link
+              href="/account"
+              style={{
+                marginLeft: 8,
+                padding: "8px 20px",
+                borderRadius: 999,
+                border: "none",
+                background: "var(--accent)",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              Sign in
+            </Link>
+          )}
         </nav>
       </div>
     </header>

@@ -4,7 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  // Redirect signed-in users to the app, not the landing page
+  const next = searchParams.get("next") ?? "/app";
 
   if (code) {
     // Build response first so we can set cookies on it

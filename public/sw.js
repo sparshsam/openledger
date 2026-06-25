@@ -1,4 +1,4 @@
-const CACHE_NAME = "openledger-shell-v4";
+const CACHE_NAME = "openledger-shell-v5";
 const SHELL_ASSETS = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -18,7 +18,8 @@ self.addEventListener("install", (event) => {
       ),
     ),
   );
-  self.skipWaiting();
+  // SW stays in waiting state until user clicks "Reload"
+  // self.skipWaiting() is called on SKIP_WAITING message instead
 });
 
 self.addEventListener("message", (event) => {

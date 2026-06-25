@@ -8,12 +8,11 @@ export function PwaRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator) || process.env.NODE_ENV !== "production") return;
 
-    // Register SW and listen for updates
     const register = async () => {
       const registration = await navigator.serviceWorker.register("/sw.js").catch(() => null);
       if (!registration) return;
 
-      // Check if a new SW is already waiting
+      // If a new SW is already waiting, show the update banner
       if (registration.waiting) {
         setUpdateAvailable(true);
       }
@@ -32,18 +31,17 @@ export function PwaRegister() {
     };
 
     register();
-
-    // On controller change (SW took over), reload to get fresh assets
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      window.location.reload();
-    });
   }, []);
 
   const applyUpdate = () => {
     setUpdateAvailable(false);
-    // Post message to SW to skip waiting
+    // Notify the waiting SW to activate
     navigator.serviceWorker.ready.then((registration) => {
       registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+    });
+    // Reload the page once the new SW takes over
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
     });
   };
 
@@ -51,8 +49,10 @@ export function PwaRegister() {
     <>
       {updateAvailable ? (
         <div className="sw-update-banner">
-          <span>Update available</span>
-          <button onClick={applyUpdate} className="sw-update-btn">Reload</button>
+          <span>A new version is available.</span>
+          <button onClick={applyUpdate} className="sw-update-btn">
+            Reload
+          </button>
         </div>
       ) : null}
     </>
