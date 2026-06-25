@@ -73,6 +73,7 @@ import { RecurringPanel } from "@/components/recurring-panel";
 import { ReceiptGallery } from "@/components/receipt-gallery";
 import { DataManagementPanel } from "@/components/data-management-panel";
 import { McpTokensPanel } from "@/components/mcp-tokens-panel";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { budgetUtilization, remainingBudget, isOverBudget } from "@/lib/finance/budgets";
 import { goalProgress } from "@/lib/finance/goals";
 
@@ -704,6 +705,7 @@ export default function Home() {
 
         {/* ════ LEDGER (Home) ════ */}
         {activeTab === "Ledger" ? (
+          <ErrorBoundary key="ledger">
           <>
             {/* Hero — on the canvas */}
             <div className="hero">
@@ -849,9 +851,11 @@ export default function Home() {
               )}
             </section>
           </>
+          </ErrorBoundary>
 
-        
+
         ) : activeTab === "Transactions" ? (
+          <ErrorBoundary key="transactions">
           <>
             <div style={{ marginBottom: 'var(--space-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 className="section-title" style={{ margin: 0 }}>Ledger entries</h2>
@@ -1002,9 +1006,11 @@ export default function Home() {
             )}
 
           </>
+          </ErrorBoundary>
 
-        
+
         ) : activeTab === "Recurring" ? (
+          <ErrorBoundary key="recurring">
           <div className="narrow">
             <RecurringPanel
               recurringEntries={recurringEntries}
@@ -1014,15 +1020,19 @@ export default function Home() {
               onDelete={deleteRecurringEntry}
             />
           </div>
+          </ErrorBoundary>
 
 
         ) : activeTab === "Goals" ? (
+          <ErrorBoundary key="goals">
           <div className="narrow">
             <GoalsPanel goals={goals} onSave={saveGoal} onDelete={deleteGoal} onContribute={contributeToGoal} />
           </div>
+          </ErrorBoundary>
 
         
         ) : activeTab === "Settings" ? (
+          <ErrorBoundary key="settings">
           <div className="narrow">
             {/* Profile */}
             <details className="settings-section" open>
@@ -1141,6 +1151,7 @@ export default function Home() {
               </div>
             </details>
           </div>
+          </ErrorBoundary>
         ) : null}
       </main>
 
