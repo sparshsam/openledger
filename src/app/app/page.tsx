@@ -182,6 +182,8 @@ export default function Home() {
   const [defaultImportAccountId, setDefaultImportAccountId] = useState("chequing");
   const [showImportModal, setShowImportModal] = useState(false);
   const [importCreateMode, setImportCreateMode] = useState(false);
+  const [importCreateModeName, setImportCreateModeName] = useState("");
+  const [importCreateModeKind, setImportCreateModeKind] = useState<AccountKind>("chequing");
   const [importParsedInfo, setImportParsedInfo] = useState<{ count: number; fileName: string } | null>(null);
   const [importLoading, setImportLoading] = useState(false);
   const [showCloudBanner, setShowCloudBanner] = useState(false);
@@ -942,151 +944,9 @@ export default function Home() {
               </div>
             )}
 
-            {/* Import transactions modal */}
-            {showImportModal ? (
-              <div className="sheet-overlay" onClick={() => { setShowImportModal(false); setImportCreateMode(false); }}>
-                <div className="sheet" onClick={(e) => e.stopPropagation()}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-                    <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>Import transactions</h2>
-                    <button className="pill pill-ghost" onClick={() => { setShowImportModal(false); setImportCreateMode(false); }} style={{ border: 0, background: 'transparent', cursor: 'pointer', fontSize: 16 }} aria-label="Close">✕</button>
-                  </div>
-
-                  {/* Step 1: Account selection */}
-                  <div style={{ marginBottom: 'var(--space-lg)' }}>
-                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Account</label>
-                    {!importCreateMode ? (
-                      <>
-                        <select
-                          value={defaultImportAccountId}
-                          onChange={(e) => setDefaultImportAccountId(e.target.value)}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, background: 'var(--surface)', marginBottom: 8 }}
-                        >
-                          {activeAccounts.length === 0 ? (
-                            <option value="">No accounts yet</option>
-                          ) : (
-                            activeAccounts.map((a) => (
-                              <option key={a.id} value={a.id}>
-                                {a.name} ({accountKindLabel(a.kind)})
-                              </option>
-                            ))
-                          )}
-                        </select>
-                        <button className="pill pill-ghost" onClick={() => setImportCreateMode(true)} style={{ fontSize: 13, padding: '6px 12px', border: '1px solid var(--border)', background: 'transparent', borderRadius: 999, cursor: 'pointer', color: 'var(--accent)' }}>
-                          + New account
-                        </button>
-                      </>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <input
-                          value={importCreateMode ? (document.querySelector('[data-import-name]') as HTMLInputElement)?.value || "" : ""}
-                          onChange={(e) => {
-                            // Store name in a ref via DOM manipulation
-                            const input = e.target;
-                            input.dataset.value = e.target.value;
-                          }}
-                          data-import-name=""
-                          placeholder="Account name (e.g. TD Chequing)"
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, boxSizing: 'border-box' }}
-                        />
-                        <select
-                          data-import-kind=""
-                          onChange={(e) => {
-                            const select = e.target;
-                            select.dataset.value = e.target.value;
-                          }}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, background: 'var(--surface)' }}
-                        >
-                          {accountKindOptions.map((k) => (
-                            <option key={k.value} value={k.value}>{k.label}</option>
-                          ))}
-                        </select>
-                        <div className="form-actions">
-                          <button onClick={() => {
-                            const nameInput = document.querySelector('[data-import-name]') as HTMLInputElement;
-                            const kindSelect = document.querySelector('[data-import-kind]') as HTMLSelectElement;
-                            const name = nameInput?.dataset?.value?.trim() || nameInput?.value?.trim() || "";
-                            const kind = (kindSelect?.dataset?.value || kindSelect?.value || "chequing") as AccountKind;
-                            if (!name) { setImportNotice("Enter an account name."); return; }
-                            const newAccount: Account = {
-                              id: `account-${crypto.randomUUID()}`,
-                              name,
-                              kind,
-                              subtitle: accountKindOptions.find((k) => k.value === kind)?.label ?? "Account",
-                              balance: 0,
-                              currency: "CAD",
-                            };
-                            setAccounts((prev) => [newAccount, ...prev]);
-                            setDefaultImportAccountId(newAccount.id);
-                            setImportCreateMode(false);
-                          }} style={{ minHeight: 44, padding: '10px 24px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                            Create & select
-                          </button>
-                          <button onClick={() => setImportCreateMode(false)} style={{ minHeight: 44, padding: '10px 24px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', fontSize: 14, cursor: 'pointer' }}>
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Step 2: File upload */}
-                  <div style={{ marginBottom: 'var(--space-lg)' }}>
-                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>CSV file</label>
-                    {!importParsedInfo ? (
-                      <button onClick={() => csvFileRef.current?.click()} style={{ width: '100%', padding: '24px', borderRadius: 8, border: '2px dashed var(--border)', background: 'var(--surface)', fontSize: 14, cursor: 'pointer', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                        <Upload size={20} style={{ display: 'block', margin: '0 auto 8px' }} />
-                        Choose CSV or TSV file
-                      </button>
-                    ) : (
-                      <div style={{ padding: 12, borderRadius: 8, background: 'var(--surface-secondary)', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{importParsedInfo.fileName} — {importParsedInfo.count} rows</span>
-                        <button onClick={() => { setParsedCsv(null); setImportParsedInfo(null); setCsvMapping({}); }} className="pill pill-ghost" style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--negative)', fontSize: 13 }}>Remove</button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Step 3: Import action */}
-                  {importParsedInfo && defaultImportAccountId && (
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: 'var(--space-md)' }}>
-                      <p className="gentle-help" style={{ marginBottom: 12 }}>
-                        {importParsedInfo.count} transactions will be added to{" "}
-                        <strong>{accounts.find((a) => a.id === defaultImportAccountId)?.name ?? "selected account"}</strong>.
-                        Review the mapping in the preview below, then click Import.
-                      </p>
-                      <div className="form-actions">
-                        <button
-                          disabled={!defaultImportAccountId || importLoading}
-                          onClick={async () => {
-                            setImportLoading(true);
-                            // Save locally immediately
-                            saveImportedTransactions();
-                            // Show cloud save banner (only if signed in)
-                            if (user) {
-                              setCloudBannerCount(importParsedInfo?.count ?? 0);
-                              setShowCloudBanner(true);
-                              setCloudBannerDismissed(false);
-                            }
-                            setImportLoading(false);
-                            setShowImportModal(false);
-                            setImportParsedInfo(null);
-                            setActiveTab("Transactions");
-                          }}
-                          style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                          <Upload size={16} style={{ marginRight: 6 }} />
-                          {importLoading ? "Importing..." : `Import ${importParsedInfo.count} transactions`}
-                        </button>
-                        <button onClick={() => { setShowImportModal(false); setImportCreateMode(false); }} style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', fontSize: 14, cursor: 'pointer' }}>
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
           </>
           </ErrorBoundary>
+
 
 
         ) : activeTab === "Recurring" ? (
@@ -1262,6 +1122,128 @@ export default function Home() {
           </div>
           </ErrorBoundary>
         ) : null}
+
+      {/* Import transactions modal (renders outside tab switch) */}
+      {showImportModal ? (
+        <div className="sheet-overlay" onClick={() => { setShowImportModal(false); setImportCreateMode(false); }}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>Import transactions</h2>
+              <button className="pill pill-ghost" onClick={() => { setShowImportModal(false); setImportCreateMode(false); }} style={{ border: 0, background: 'transparent', cursor: 'pointer', fontSize: 16 }} aria-label="Close">✕</button>
+            </div>
+
+            {/* Step 1: Account + file */}
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Account</label>
+              {!importCreateMode ? (
+                <>
+                  <select
+                    value={defaultImportAccountId}
+                    onChange={(e) => setDefaultImportAccountId(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, background: 'var(--surface)' }}
+                  >
+                    {activeAccounts.length === 0 ? (
+                      <option value="">No accounts yet</option>
+                    ) : (
+                      activeAccounts.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({accountKindLabel(a.kind)})
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <button onClick={() => setImportCreateMode(true)} style={{ marginTop: 8, fontSize: 13, padding: '6px 14px', border: '1px solid var(--border)', background: 'transparent', borderRadius: 999, cursor: 'pointer', color: 'var(--accent)' }}>
+                    + New account
+                  </button>
+                </>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input
+                    value={importCreateModeName}
+                    onChange={(e) => setImportCreateModeName(e.target.value)}
+                    placeholder="Account name (e.g. TD Chequing)"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, boxSizing: 'border-box' }}
+                  />
+                  <select
+                    value={importCreateModeKind}
+                    onChange={(e) => setImportCreateModeKind(e.target.value as AccountKind)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, background: 'var(--surface)' }}
+                  >
+                    {accountKindOptions.map((k) => (
+                      <option key={k.value} value={k.value}>{k.label}</option>
+                    ))}
+                  </select>
+                  <div className="form-actions">
+                    <button onClick={() => {
+                      if (!importCreateModeName.trim()) { setImportNotice("Enter an account name."); return; }
+                      const newAccount: Account = {
+                        id: `account-${crypto.randomUUID()}`,
+                        name: importCreateModeName.trim(),
+                        kind: importCreateModeKind,
+                        subtitle: accountKindOptions.find((k) => k.value === importCreateModeKind)?.label ?? "Account",
+                        balance: 0, currency: "CAD",
+                      };
+                      setAccounts((prev) => [newAccount, ...prev]);
+                      setDefaultImportAccountId(newAccount.id);
+                      setImportCreateMode(false);
+                      setImportCreateModeName("");
+                    }} style={{ minHeight: 44, padding: '10px 24px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                      Create & select
+                    </button>
+                    <button onClick={() => setImportCreateMode(false)} style={{ minHeight: 44, padding: '10px 24px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', fontSize: 14, cursor: 'pointer' }}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* File upload */}
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>CSV file</label>
+              {!importParsedInfo ? (
+                <button onClick={() => csvFileRef.current?.click()} style={{ width: '100%', padding: '24px', borderRadius: 8, border: '2px dashed var(--border)', background: 'var(--surface)', fontSize: 14, cursor: 'pointer', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                  <Upload size={20} style={{ display: 'block', margin: '0 auto 8px' }} />
+                  Choose CSV or TSV file
+                </button>
+              ) : (
+                <div style={{ padding: 12, borderRadius: 8, background: 'var(--surface-secondary)', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{importParsedInfo.fileName} — {importParsedInfo.count} rows</span>
+                  <button onClick={() => { setParsedCsv(null); setImportParsedInfo(null); setCsvMapping({}); }} style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--negative)', fontSize: 13 }}>Remove</button>
+                </div>
+              )}
+            </div>
+
+            {/* Import button */}
+            {importParsedInfo && defaultImportAccountId ? (
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 'var(--space-md)' }}>
+                <p className="gentle-help" style={{ marginBottom: 12 }}>
+                  {importParsedInfo.count} transactions will be added to{" "}
+                  <strong>{accounts.find((a) => a.id === defaultImportAccountId)?.name ?? "selected account"}</strong>.
+                </p>
+                <div className="form-actions">
+                  <button disabled={importLoading} onClick={async () => {
+                    setImportLoading(true);
+                    saveImportedTransactions();
+                    if (user) { setCloudBannerCount(importParsedInfo.count); setShowCloudBanner(true); setCloudBannerDismissed(false); }
+                    setImportLoading(false);
+                    setShowImportModal(false);
+                    setImportParsedInfo(null);
+                    setActiveTab("Transactions");
+                  }} style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                    <Upload size={16} style={{ marginRight: 6 }} />
+                    {importLoading ? "Importing..." : `Import ${importParsedInfo.count} transactions`}
+                  </button>
+                  <button onClick={() => { setShowImportModal(false); setImportCreateMode(false); }} style={{ minHeight: 48, padding: '12px 24px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', fontSize: 14, cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       </main>
 
       {/* Cloud save banner */}
