@@ -1,6 +1,6 @@
 {
   "name": "openledger",
-  "version": "0.9.10",
+  "version": "0.9.12",
   "description": "A private, editorial personal finance ledger.",
   "private": true,
   "license": "AGPL-3.0-or-later",

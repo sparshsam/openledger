@@ -2,6 +2,13 @@
 
 All notable changes to OpenLedger will be documented here.
 
+## 0.9.12 — 2026-06-25
+
+- **Auth redirect fix.** Post-sign-in now goes straight to `/app` (not landing page).
+- **Signed-in nav.** Landing page header shows "Ledger" link instead of "Sign in" when authenticated.
+- **SW update flow.** New version detected in background — user clicks "Reload" to activate. Periodic update check every 60s prevents stale cache lock-in.
+- **Version bump.** App version `0.9.12` exposed via `<meta name="application-version">`.
+
 ## 0.9.11 — 2026-06-25
 
 - **Accounts tab becomes a management hub.** Kind badges (Checking/Credit/Savings/Loan/Misc), explainer text, simplified type selection.

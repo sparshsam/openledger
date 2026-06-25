@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+
+const UPDATE_CHECK_INTERVAL = 60_000; // 60 seconds
 
 export function PwaRegister() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || process.env.NODE_ENV !== "production") return;
@@ -11,6 +14,8 @@ export function PwaRegister() {
     const register = async () => {
       const registration = await navigator.serviceWorker.register("/sw.js").catch(() => null);
       if (!registration) return;
+
+      registrationRef.current = registration;
 
       // If a new SW is already waiting, show the update banner
       if (registration.waiting) {
@@ -31,15 +36,27 @@ export function PwaRegister() {
     };
 
     register();
+
+    // Periodically check for SW updates
+    const interval = setInterval(async () => {
+      if (registrationRef.current) {
+        try {
+          await registrationRef.current.update();
+        } catch {
+          // Update check failed silently — next interval will retry
+        }
+      }
+    }, UPDATE_CHECK_INTERVAL);
+
+    return () => clearInterval(interval);
   }, []);
 
   const applyUpdate = () => {
     setUpdateAvailable(false);
-    // Notify the waiting SW to activate
     navigator.serviceWorker.ready.then((registration) => {
       registration.waiting?.postMessage({ type: "SKIP_WAITING" });
     });
-    // Reload the page once the new SW takes over
+    // Reload when new SW takes over
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       window.location.reload();
     });
