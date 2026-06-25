@@ -280,6 +280,7 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 .account-kind-badge.badge-cc { background: #ffe0e0; color: #cc0000; }
 .account-kind-badge.badge-sav { background: #e0f5e0; color: #006600; }
 .account-kind-badge.badge-loan { background: #fff0d0; color: #cc6600; }
+.account-kind-badge.badge-crypto { background: #f0e0ff; color: #8800cc; }
 .account-kind-badge.badge-misc { background: #e8e8e8; color: #666666; }
 
 /* ── CSV account gate ── */
