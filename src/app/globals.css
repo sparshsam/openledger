@@ -335,23 +335,19 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 /* ── Import modal ── */
 .import-modal-select, .import-modal-input {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  font-size: 14px;
-  background: var(--surface);
+  padding: 14px 16px;
+  background: var(--surface-secondary);
+  border: none;
+  border-radius: var(--radius-sm);
   color: var(--text);
-  box-sizing: border-box;
-  font-family: inherit;
-}
-.import-modal-select:focus, .import-modal-input:focus {
+  font-size: 15px;
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-bg);
+  font-family: inherit;
+  box-sizing: border-box;
 }
-.import-modal-select option {
-  color: var(--text);
-  background: var(--surface);
+.import-modal-select { appearance: none; cursor: pointer; }
+.import-modal-select:focus, .import-modal-input:focus {
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 /* ── Cloud save banner ── */

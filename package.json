@@ -4,7 +4,7 @@
   "description": "A private, editorial personal finance ledger.",
   "private": true,
   "license": "AGPL-3.0-or-later",
-  "homepage": "https://openledgerbysparsh.vercel.app",
+  "homepage": "https://ledger.kovina.org",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sparshsam/openledger.git"
