@@ -1,4 +1,4 @@
-const CACHE_NAME = "openledger-shell-v3";
+const CACHE_NAME = "openledger-shell-v4";
 const SHELL_ASSETS = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -19,6 +19,12 @@ self.addEventListener("install", (event) => {
     ),
   );
   self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {
