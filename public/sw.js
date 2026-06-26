@@ -1,14 +1,38 @@
-const CACHE_NAME = "openledger-shell-v6";
+// ── PWA Service Worker for OpenLedger ──
+//
+// This SW uses:
+//   NETWORK-FIRST for HTML pages — always fetch fresh content, fall back to cache when offline
+//   CACHE-FIRST for static assets — fast offline-capable loading from cache
+//
+// The VERSION constant is bumped with each deploy so the browser detects the SW
+// changed and downloads the new version immediately.
+
+const CACHE_NAME = "openledger-shell-v7";
 const SHELL_ASSETS = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 
+// Bump this with every deploy that includes SW changes so the browser
+// detects the updated script and activates the new SW.
+// (The browser also checks for SW updates every 24h, but explicit changes
+//  ensure near-immediate detection.)
+const VERSION = "2026-06-26";
+
+// ── Install ──────────────────────────────────────────────────────────────
+// Cache shell assets and take control immediately — no waiting state.
+// If an asset fails to cache (e.g., offline install), the app still works
+// fine for online visits via the network-first navigation handler below.
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
       Promise.all(
         SHELL_ASSETS.map((url) =>
           fetch(url)
             .then((response) => {
-              if (!response.ok) throw new Error(`Failed to cache ${url}: ${response.status}`);
+              if (!response.ok)
+                throw new Error(
+                  `Failed to cache ${url}: ${response.status}`,
+                );
               return cache.put(url, response);
             })
             .catch(() => {
@@ -18,52 +42,94 @@ self.addEventListener("install", (event) => {
       ),
     ),
   );
-  // SW stays in waiting state until user clicks "Reload"
-  // self.skipWaiting() is called on SKIP_WAITING message instead
 });
 
-self.addEventListener("message", (event) => {
-  if (event.data?.type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
-});
-
+// ── Activate ──────────────────────────────────────────────────────────────
+// Delete stale caches, claim all clients, and proactively refresh shell
+// assets from the network so the cache has fresh content.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
-    ).then(() => self.clients.claim()),
+    (async () => {
+      // Remove caches from older SW versions
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key)),
+      );
+
+      // Proactively refresh shell assets from network (silently — don't
+      // block activation on this, but don't lose it if it fails either).
+      // This ensures the cache always has the latest version of shell assets
+      // even if the SW version string hasn't changed.
+      caches
+        .open(CACHE_NAME)
+        .then((cache) =>
+          Promise.allSettled(
+            SHELL_ASSETS.map((url) =>
+              fetch(url + "?v=" + VERSION)
+                .then((res) => {
+                  if (res.ok) cache.put(url, res);
+                })
+                .catch(() => {}),
+            ),
+          ),
+        )
+        .catch(() => {});
+
+      // Take control of all open clients immediately
+      await self.clients.claim();
+    })(),
   );
 });
 
+// ── Fetch ─────────────────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  // For navigation (HTML) requests, try the network first, fall back to cache
+  // For navigation (HTML) requests: try network first, fall back to cache
   if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => caches.match(event.request).then((cached) => cached ?? new Response("Offline", { status: 503 }))),
-    );
+    event.respondWith(networkFirst(event.request));
     return;
   }
 
-  // For static assets, use cache-first for speed
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (response.ok && response.type === "basic") {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        }
-        return response;
-      });
-    }),
-  );
+  // For static assets: cache-first for speed and offline support
+  event.respondWith(cacheFirst(event.request));
 });
+
+/**
+ * Network-first strategy for HTML pages.
+ * Always tries the network first for fresh content. If offline or the
+ * network fails, falls back to the cached version.
+ */
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request);
+    // Cache a copy for offline fallback
+    const copy = response.clone();
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, copy);
+    return response;
+  } catch {
+    const cached = await caches.match(request);
+    return cached ?? new Response("Offline", { status: 503 });
+  }
+}
+
+/**
+ * Cache-first strategy for static assets.
+ * Returns from cache instantly, falling back to network if not cached.
+ * Newly-fetched assets are added to the cache for next time.
+ */
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+
+  const response = await fetch(request);
+  if (response.ok && response.type === "basic") {
+    const copy = response.clone();
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, copy);
+  }
+  return response;
+}

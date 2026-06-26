@@ -2,6 +2,34 @@
 
 All notable changes to OpenLedger will be documented here.
 
+## 0.10.1 — 2026-06-26
+
+- **CDN caching fix.** Vercel was caching HTML pages at the CDN edge for up to a year. Added explicit `Cache-Control: private, no-cache, no-store, must-revalidate` headers for all HTML routes in `next.config.ts` and middleware. Users now always see the latest deployed version regardless of browser or cache state. See PR for full root-cause analysis.
+- **Service worker upgrade.** SW now calls `skipWaiting()` immediately on install (no waiting state). On activate, proactively re-fetches shell assets from the network. VERSION constant enables browser SW update detection.
+- **Dark/light mode toggle.** Warm-toned dark mode (`#3A3228` bg), persisted to localStorage, respects `prefers-color-scheme`.
+- **Custom DatePicker.** Replaces all native `<input type="date">` across 6 components. Keyboard accessible, parchment popover, compact 224px.
+- **Custom Select component.** Reusable dropdown replacing ALL native `<select>` elements across 7 component files. Parchment popover, keyboard accessible.
+- **All-months bar chart.** Inline SVG (1200×600 viewBox), full-bleed width, proper gridlines, income/expense/net across all months, click to navigate.
+- **Comparison engine.** 6 range types (this_week through last_year), expense/income/cashflow comparisons, 12 tests.
+- **Typography rescaling.** Summary values 44px/64px (mobile/desktop), net worth 40px/56px, report title 36px/56px. Amounts dominate labels.
+- **Premium import modal redesign.** Editorial header, step indicator, drop zone with format badges, review table with generous spacing, trust info block.
+- **3-zone header layout.** Logo left, nav tabs centered, search+theme right. Header matches page background color.
+- **Seamless header.** No border-bottom, floats with page content.
+- **Color consistency.** All positive `#099019` green, negative `#ff255f` red across entire app via CSS variables.
+- **Lint fixes.** 0 errors (down from 68). Unused imports cleaned, setState-in-effect warnings fixed.
+
+## 0.10.0 — 2026-06-25
+
+- **Ledger tab rebuilt** as a monthly financial report — "Where Did My Money Go?" signature section, summary strip (income/spent/remaining), month-over-month comparison pills.
+- **Import flow redesigned** as premium staged onboarding — choose account → upload → auto-categorized preview → accept.
+- **Smart categorization.** Auto-categorizes bank transactions from description keywords (Starbucks→Coffee, Loblaws→Groceries), hierarchical categories (Food|Groceries, Transport|Fuel), learns from corrections (persisted locally).
+- **Budget suggestions.** "Based on your spending" prompts pre-filled from import data averages via `averageSpendingByCategory()`.
+- **Goals gate.** Prompts budget creation before showing goals.
+- **5-tab navigation.** Ledger / Transactions / Accounts / Goals / Settings. Shared filter state (month, account, category) across all views.
+- **Accounts tab** with account list and tap-to-filter across all views.
+- **Finance engine.** Month-scoped helpers, month-over-month, average-spending-by-category. Immutable rule: every displayed number comes from the engine.
+- **104 tests** across 10 test files.
+
 ## 0.9.12 — 2026-06-25
 
 - **Auth redirect fix.** Post-sign-in now goes straight to `/app` (not landing page).
