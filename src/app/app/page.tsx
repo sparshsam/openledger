@@ -723,22 +723,24 @@ export default function Home() {
             </button>
           ))}
         </div>
-        <button
-          className="navbar-search-btn"
-          onClick={toggleTheme}
-          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-          title={darkMode ? "Light mode" : "Dark mode"}
-        >
-          {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
-        <button
-          className="navbar-search-btn"
-          onClick={() => setShowSearch(true)}
-          aria-label="Search ledger"
-          title="Search ledger"
-        >
-          <Search size={16} />
-        </button>
+        <div className="navbar-actions">
+          <button
+            className="navbar-search-btn"
+            onClick={() => setShowSearch(true)}
+            aria-label="Search ledger"
+            title="Search ledger"
+          >
+            <Search size={16} />
+          </button>
+          <button
+            className="navbar-search-btn"
+            onClick={toggleTheme}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            title={darkMode ? "Light mode" : "Dark mode"}
+          >
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
       </nav>
 
       <main id="main">
