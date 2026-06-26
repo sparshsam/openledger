@@ -13,11 +13,13 @@ import {
   Copy,
   CreditCard,
   Landmark,
+  Moon,
   Pencil,
   PiggyBank,
   Plus,
   Search,
   Settings,
+  Sun,
   Target,
   Trash2,
   Upload,
@@ -167,6 +169,7 @@ export default function Home() {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [storageNotice, setStorageNotice] = useState("Loading local ledger...");
   const [hydrated, setHydrated] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const screenshotModeRef = useRef(false);
   const [showTxForm, setShowTxForm] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -274,6 +277,22 @@ export default function Home() {
     () => [...new Set(transactions.map((t) => t.category))].sort(),
     [transactions],
   );
+
+  // Theme initialization
+  useEffect(() => {
+    const stored = localStorage.getItem("openledger_theme");
+    if (stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      setDarkMode(true);
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  }, []);
+
+  function toggleTheme() {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
+    localStorage.setItem("openledger_theme", next ? "dark" : "light");
+  }
 
   useEffect(() => {
     // Screenshot demo mode — loads rich sample data, skips persistence
@@ -704,6 +723,14 @@ export default function Home() {
             </button>
           ))}
         </div>
+        <button
+          className="navbar-search-btn"
+          onClick={toggleTheme}
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          title={darkMode ? "Light mode" : "Dark mode"}
+        >
+          {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
         <button
           className="navbar-search-btn"
           onClick={() => setShowSearch(true)}
