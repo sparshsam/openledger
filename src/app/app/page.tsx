@@ -13,10 +13,13 @@ import {
   Copy,
   CreditCard,
   Landmark,
+  Moon,
   Pencil,
   PiggyBank,
   Plus,
+  Search,
   Settings,
+  Sun,
   Target,
   Trash2,
   Upload,
@@ -727,7 +730,7 @@ export default function Home() {
             aria-label="Search ledger"
             title="Search ledger"
           >
-            <span style={{ fontSize: 18, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>&#x1F50D;</span>
+            <Search className="size-4" />
           </button>
           <button
             className="navbar-search-btn"
@@ -735,7 +738,7 @@ export default function Home() {
             aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
             title={darkMode ? "Light mode" : "Dark mode"}
           >
-            <span style={{ fontSize: 18, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>{darkMode ? "☀️" : "🌙"}</span>
+            {darkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </button>
         </div>
       </nav>
