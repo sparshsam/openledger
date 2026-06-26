@@ -26,6 +26,14 @@ export async function middleware(request: NextRequest) {
   );
 
   await supabase.auth.getUser();
+
+  // Prevent CDN from caching HTML pages — ensures users always see the latest
+  // build. Without this, Vercel's CDN can serve stale HTML for up to a year.
+  supabaseResponse.headers.set(
+    "Cache-Control",
+    "private, no-cache, no-store, max-age=0, must-revalidate",
+  );
+
   return supabaseResponse;
 }
 
