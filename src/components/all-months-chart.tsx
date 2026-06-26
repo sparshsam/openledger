@@ -27,8 +27,8 @@ const currencyCompact = new Intl.NumberFormat("en-CA", {
   notation: "compact",
 });
 
-const INCOME = "#2a7a2a";
-const EXPENSE = "#c94444";
+const INCOME = "#099019";
+const EXPENSE = "#ff255f";
 const ACCENT = "#7A2F00";
 const GRID = "rgba(26, 22, 18, 0.08)";
 const ZERO = "rgba(26, 22, 18, 0.15)";
