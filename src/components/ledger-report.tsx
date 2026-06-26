@@ -9,15 +9,13 @@ import {
   computeEffectiveNetWorth,
   accountEffectiveBalance,
 } from "@/lib/finance/totals";
-import { categoryTotals, monthlyTotals } from "@/lib/finance/grouping";
+import { categoryTotals } from "@/lib/finance/grouping";
 import { budgetUtilization, remainingBudget, isOverBudget } from "@/lib/finance/budgets";
 import { MonthPicker } from "@/components/month-picker";
 import { ComparisonPills, COMPARISON_RANGES } from "@/components/comparison-pills";
 import { AllMonthsBarChart } from "@/components/all-months-chart";
 import type { ComparisonRange, ComparisonResult } from "@/lib/finance/comparisons";
 import { computeExpenseComparison } from "@/lib/finance/comparisons";
-import { IncomeVsExpensesChart } from "@/components/charts/income-vs-expenses";
-import { SpendingByCategoryChart } from "@/components/charts/spending-by-category";
 
 const currency = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" });
 
@@ -75,23 +73,6 @@ export function LedgerReport({
   }, [monthlyTxns]);
 
   const netWorth = computeEffectiveNetWorth(accounts, monthlyTxns);
-
-  const catData = useMemo(() => {
-    return categories.map(({ category, spent }) => ({
-      category,
-      total: -spent,
-    }));
-  }, [categories]);
-
-  const periodData = useMemo(() => {
-    return monthlyTotals(monthlyTxns).map((m) => ({
-      label: new Date(`${m.month}-01T12:00:00`).toLocaleString("default", {
-        month: "short",
-      }),
-      income: m.income,
-      expense: m.expense,
-    }));
-  }, [monthlyTxns]);
 
   const monthLabel = new Date(`${month}-01T12:00:00`).toLocaleString("en-CA", {
     month: "long",
@@ -203,12 +184,6 @@ export function LedgerReport({
           onSelectMonth={onMonthChange}
         />
       </section>
-
-      {/* Charts Grid */}
-      <div className="charts-grid">
-        <IncomeVsExpensesChart data={periodData} />
-        <SpendingByCategoryChart data={catData} />
-      </div>
 
       {/* Budget Progress */}
       {budgets.filter((b) => b.month === month).length > 0 && (
