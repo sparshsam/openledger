@@ -25,6 +25,7 @@ type LedgerReportProps = {
   budgets: Budget[];
   month: string;
   onMonthChange: (month: string) => void;
+  onImportClick?: () => void;
   activeCategory: string | null;
   activeAccountId: string | null;
   onCategoryFilter: (category: string | null) => void;
@@ -36,6 +37,7 @@ export function LedgerReport({
   budgets,
   month,
   onMonthChange,
+  onImportClick,
   activeCategory,
   activeAccountId,
   onCategoryFilter,
@@ -89,6 +91,12 @@ export function LedgerReport({
           </h1>
           <MonthPicker value={month} onChange={onMonthChange} />
         </div>
+        {onImportClick && (
+          <button className="pill pill-primary" onClick={onImportClick} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+        )}
       </div>
 
       {/* Summary Strip — numbers first */}

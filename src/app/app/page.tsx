@@ -728,6 +728,7 @@ export default function Home() {
               budgets={budgets}
               month={activeMonth}
               onMonthChange={setActiveMonth}
+              onImportClick={() => setShowImportModal(true)}
               activeCategory={activeCategoryFilter}
               activeAccountId={activeAccountFilter}
               onCategoryFilter={setActiveCategoryFilter}
