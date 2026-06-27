@@ -35,13 +35,16 @@ export function useAuth() {
 
       if (code) {
         // Exchange the PKCE code for a session on the client side.
-        // This runs before getSession() so the session is ready.
+        // The browser client sets session cookies correctly via document.cookie,
+        // avoiding the server-side timing issue with SSR storage handlers.
         await supabase.auth.exchangeCodeForSession(code);
 
-        // Clean the code from the URL without a full page reload
-        const url = new URL(window.location.href);
-        url.searchParams.delete("code");
-        window.history.replaceState({}, "", url.pathname + url.search);
+        // Navigate to /app. The middleware rewrites ?code= requests to serve
+        // /app content at the original URL, so the browser is showing /app
+        // content at the wrong address. A hard navigation to /app establishes
+        // the correct URL with the session cookies just set.
+        window.location.href = "/app";
+        return;
       }
 
       const { data } = await supabase.auth.getSession();
