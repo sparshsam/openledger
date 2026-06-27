@@ -34,17 +34,27 @@ export function useAuth() {
       const code = params.get("code");
 
       if (code) {
-        // Exchange the PKCE code for a session on the client side.
-        // The browser client sets session cookies correctly via document.cookie,
-        // avoiding the server-side timing issue with SSR storage handlers.
-        await supabase.auth.exchangeCodeForSession(code);
+        try {
+          // Log the code verifier cookie state before exchange
+          const allCookies = document.cookie;
+          console.log("[Auth] Code detected, cookies:", allCookies.substring(0, 200));
 
-        // Navigate to /app. The middleware rewrites ?code= requests to serve
-        // /app content at the original URL, so the browser is showing /app
-        // content at the wrong address. A hard navigation to /app establishes
-        // the correct URL with the session cookies just set.
-        window.location.href = "/app";
-        return;
+          // Exchange the PKCE code for a session on the client side.
+          const result = await supabase.auth.exchangeCodeForSession(code);
+          console.log("[Auth] Exchange result:", result.data?.session ? "session OK" : "no session", result.error);
+
+          if (result.error) {
+            console.error("[Auth] Exchange failed:", result.error.message);
+            return;
+          }
+
+          // Navigate to /app after successful exchange
+          window.location.href = "/app";
+          return;
+        } catch (err) {
+          console.error("[Auth] Exchange threw:", err);
+          return;
+        }
       }
 
       const { data } = await supabase.auth.getSession();
