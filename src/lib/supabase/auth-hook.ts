@@ -35,19 +35,23 @@ export function useAuth() {
 
       if (code) {
         try {
-          await supabase.auth.exchangeCodeForSession(code);
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-          // Clean code from URL and replace state to current path
-          // so useAuth on the next render reads session from cookies
-          // instead of trying to exchange the same code again.
+          // Clean code from URL regardless of outcome so the page doesn't
+          // retry the same failed exchange on every render cycle.
           const cleanUrl = window.location.pathname.replace(/\/auth\/callback/, "/app");
           window.history.replaceState({}, "", cleanUrl);
 
-          // Fall through to getSession() below — now that the code has
-          // been exchanged, the browser client has the session in its
-          // storage and getSession() will return it.
+          if (error) {
+            console.error("[Auth] ExchangeCodeForSession returned error:", error.message);
+            return;
+          }
+
+          // Fall through to getSession() below — the exchange succeeded,
+          // the browser client stored the session in cookies, and
+          // getSession() will read it back.
         } catch (err) {
-          console.error("[Auth] Exchange failed:", err);
+          console.error("[Auth] ExchangeCodeForSession threw:", err);
           return;
         }
       }
