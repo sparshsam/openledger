@@ -35,24 +35,19 @@ export function useAuth() {
 
       if (code) {
         try {
-          // Log the code verifier cookie state before exchange
-          const allCookies = document.cookie;
-          console.log("[Auth] Code detected, cookies:", allCookies.substring(0, 200));
+          await supabase.auth.exchangeCodeForSession(code);
 
-          // Exchange the PKCE code for a session on the client side.
-          const result = await supabase.auth.exchangeCodeForSession(code);
-          console.log("[Auth] Exchange result:", result.data?.session ? "session OK" : "no session", result.error);
+          // Clean code from URL and replace state to current path
+          // so useAuth on the next render reads session from cookies
+          // instead of trying to exchange the same code again.
+          const cleanUrl = window.location.pathname.replace(/\/auth\/callback/, "/app");
+          window.history.replaceState({}, "", cleanUrl);
 
-          if (result.error) {
-            console.error("[Auth] Exchange failed:", result.error.message);
-            return;
-          }
-
-          // Navigate to /app after successful exchange
-          window.location.href = "/app";
-          return;
+          // Fall through to getSession() below — now that the code has
+          // been exchanged, the browser client has the session in its
+          // storage and getSession() will return it.
         } catch (err) {
-          console.error("[Auth] Exchange threw:", err);
+          console.error("[Auth] Exchange failed:", err);
           return;
         }
       }
