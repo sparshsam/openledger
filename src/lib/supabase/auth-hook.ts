@@ -26,15 +26,27 @@ export function useAuth() {
     const supabase = createClient();
 
     const init = async () => {
-      const { data } = await supabase.auth.getSession();
+      console.log("[AUTH] Calling getSession() from init");
+      const { data, error } = await supabase.auth.getSession();
+      console.log("[AUTH] getSession() result:", {
+        hasSession: !!data.session,
+        hasUser: !!data.session?.user,
+        userId: data.session?.user?.id?.substring(0, 12),
+        hasAccessToken: !!data.session?.access_token,
+        hasRefreshToken: !!data.session?.refresh_token,
+        error: error?.message,
+      });
+
       const user = data.session?.user ?? null;
       let profile = null;
 
       if (user) {
+        console.log("[AUTH] User found, fetching profile");
         profile = await fetchProfile(supabase, user.id);
         registerDevice().catch(() => {});
       }
 
+      console.log("[AUTH] Setting state:", { hasUser: !!user, loading: false });
       setState({ user, session: data.session, loading: false, profile });
     };
 
@@ -42,22 +54,34 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[AUTH] onAuthStateChange ────────────────────");
+      console.log("[AUTH] Event:", event);
+      console.log("[AUTH] Session exists:", !!session);
+      console.log("[AUTH] User ID:", session?.user?.id?.substring(0, 12) ?? null);
+      console.log("[AUTH] Access token present:", !!session?.access_token);
+      console.log("[AUTH] Refresh token present:", !!session?.refresh_token);
+      console.log("[AUTH] Cookie check (first 300 chars):", document.cookie.substring(0, 300));
+      console.log("[AUTH] ──────────────────────────────────────");
+
       const user = session?.user ?? null;
       let profile = null;
 
       if (user) {
-        profile = await fetchProfile(
+        fetchProfile(
           supabase,
           user.id,
           user.user_metadata?.full_name as string | undefined,
           user.email as string | undefined,
           user.user_metadata?.avatar_url as string | undefined,
-        );
-        registerDevice().catch(() => {});
+        ).then((p) => {
+          profile = p;
+          registerDevice().catch(() => {});
+          setState({ user, session, loading: false, profile: p });
+        });
+      } else {
+        setState({ user, session, loading: false, profile });
       }
-
-      setState({ user, session, loading: false, profile });
     });
 
     return () => {
