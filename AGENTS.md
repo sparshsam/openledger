@@ -8,14 +8,86 @@ OpenLedger is a private, local-first finance tool. Warm ledger aesthetic, editor
 
 ## Current Release
 
-**v0.10.1** (2026-06-25) — Premium financial report polish
+**v0.10.1** (2026-06-27) — Auth rebuild + CDN caching fix
 **Live domain:** https://ledger.kovina.org
+**Status:** Production — auth verified in incognito. All 104 tests pass.
 
-⚠ **STATUS: Pushed to main. Vercel free-plan rate limit hit (100 deploys/day).**
+## Auth — Complete Rebuild (June 27)
+
+### Root Cause
+Google OAuth was broken due to a **Supabase project mismatch**. The auth cookie was being set for OpenSprout's project (`rbdyrymtgfqqkdemicdo`) instead of OpenLedger's (`qoxmibmbyjmkntzrckyr`). Two contributing factors:
+
+1. **Missing `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` on Vercel.** The callback's `createServerClient` received `undefined` for the key → `exchangeCodeForSession` failed silently → no session cookies set → guest mode. The legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` was present but unused after the browser client switched to the publishable key format.
+2. **Stale OpenSprout cookies on localhost.** Both apps run on `localhost` (different ports). Cookies are not scoped by port. OpenSprout's `sb-rbdyrymtgfqqkdemicdo-auth-token` cookie was visible to OpenLedger. The `useAuth()` hook read it as a valid session → user appeared signed-in with a wrong-project session → "Continue with Google" wouldn't initiate (client already had a session).
+
+### What Was Rebuilt
+- **Middleware stripped:** No Supabase client, no `getUser()`, no cookie handling. Only Cache-Control header remains.
+- **Callback (`/auth/callback`):** Matches OpenSprout's working pattern exactly — `request.cookies.getAll()` (Next.js API), no manual parsing, no delays, no `?code=` handling.
+- **Browser client (`client.ts`):** Uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, explicit `flowType: "pkce"`, `autoRefreshToken: true`, `detectSessionInUrl: true`.
+- **Server client (`server.ts`):** Switched from anon key to publishable key.
+- **Auth hook (`auth-hook.ts`):** Client-side `exchangeCodeForSession` removed. `clearWrongProjectCookies()` — clears any `sb-*` cookie not matching `qoxmibmbyjmkntzrckyr`. Logs gated behind `localStorage.DEBUG_AUTH=true`.
+- **Sign-in button:** Uses `window.location.assign(data.url)` (manual redirect) instead of relying on Supabase auto-redirect. Added `queryParams: { access_type: "offline", prompt: "select_account" }`.
+- **Dev debug button:** "Debug Google OAuth" button (dev-only) for isolated OAuth testing.
+
+### Auth Flow
+1. Click "Continue with Google" → `signInWithOAuth()` returns `data.url`
+2. `window.location.assign(data.url)` → Google OAuth
+3. Google → `/auth/callback?code=<pkce_code>`
+4. Callback: `createServerClient` → `exchangeCodeForSession(code)` → write `sb-qoxmibmbyjmkntzrckyr-auth-token` cookies → redirect `/app`
+5. `/app`: `useAuth()` → `clearWrongProjectCookies()` → `getSession()` → user signed in
+6. Sign out: `supabase.auth.signOut()` → redirect `/` — next sign-in opens Google cleanly
+
+### Environment
+- **Vercel env:** Added `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Existing `NEXT_PUBLIC_SUPABASE_URL` confirmed correct (points to `qoxmibmbyjmkntzrckyr`).
+- **`.env`:** Switched from anon key to publishable key: `sb_publishable_FTJ_XShVabxUb_NVrH7Htw_h3w2ponJ`
+- **`.env.example`:** Updated to publishable key format.
+
+## CDN Caching Fix
+
+- `next.config.ts`: `Cache-Control: private, no-cache, no-store, must-revalidate` for HTML routes. Vercel was applying `s-maxage=31536000` (1 year CDN cache).
+- `/sw.js` explicit rule: same no-cache headers. SW was excluded from no-cache regex (`.js` in exclusion list) → CDN cached it for 1 year → browser never detected SW updates.
+- SW upgraded: `skipWaiting()`, proactive cache refresh on activate, `VERSION` constant.
+
+## Service Worker
+
+- **Network-first** for HTML pages, **cache-first** for static assets.
+- **Google avatars bypass:** `lh3.googleusercontent.com` requests are not intercepted (no `event.respondWith()`) to avoid `connect-src` CSP violations.
+- `PwaRegister` component checks for updates every 60s, shows "Reload" banner.
+
+## CSP
+
+- `'unsafe-eval'` in `script-src` (React dev mode).
+- `https://lh3.googleusercontent.com` in both `img-src` and `connect-src`.
+
+## UI Changes (v0.10.1)
+
+- **Net worth moved** to top summary strip (Income/Spent/Remaining/Net worth).
+- **Import button** on Transactions tab.
+- **Dark mode fixes:** import modal background, Select component, account badges.
+- **Accounts tab:** "Add account" button + kind badges on each card.
+
+## Downstream Bug Fixes
+
+- **Backup 406:** `fetchLatestBackup()` `.single()` → `.maybeSingle()`.
+- **MCP tokens 500:** GET handler uses authenticated client (not service role). RLS allows users to SELECT own tokens.
+
+## Key Auth Files
+
+| Path | Purpose |
+|------|---------|
+| `src/lib/supabase/client.ts` | Browser client (publishable key, PKCE, `detectSessionInUrl`) |
+| `src/lib/supabase/server.ts` | Server client (publishable key, `cookies()` API) |
+| `src/lib/supabase/auth-hook.ts` | `useAuth()` — session detection, project guard, debug logging |
+| `src/lib/supabase/admin.ts` | Admin client (service role, server-only) |
+| `src/app/auth/callback/route.ts` | PKCE code exchange + cookie writing |
+| `src/components/auth-panel.tsx` | Google sign-in button + sign-out |
+| `src/app/account/page.tsx` | Account page sign-in |
+| `src/components/public-header.tsx` | Session-aware nav |
+| `src/middleware.ts` | Cache-Control only (no auth) |
+| `public/sw.js` | Service worker (SW cache, avatar bypass) |
+| `src/app/api/mcp/tokens/route.ts` | MCP token CRUD |
 
 ## v0.10.0 — Financial Report Redesign
-
-The app was transformed from disconnected features into a connected financial report pipeline. All changes pushed to main.
 
 ### Ledger tab → Monthly Report
 - Summary strip: income / spent / remaining (44px/64px typography, numbers dominate)
@@ -28,80 +100,30 @@ The app was transformed from disconnected features into a connected financial re
 ### Import Flow
 - Premium staged sheet: Choose Account → Upload → Auto-Categorized Preview → Accept
 - Editorial drop zone, trust info block, step progress indicator, subtle transitions
-- Auto-categorization from bank descriptions (Starbucks→Food|Coffee, Loblaws→Food|Groceries)
-- Category learning: corrections persist to localStorage, future imports use learned patterns
+- Auto-categorization from bank descriptions
+- Category learning: corrections persist to localStorage
 
-### New Finance Engine Helpers
+### Finance Engine
 - Month-scoped: `computeMonthIncome`, `computeMonthExpenses`, `computeMonthCashflow`
 - Month-over-month: `computeMonthOverMonth`, `computeCategoryMonthOverMonth`
 - Average spending: `averageSpendingByCategory`
-- Comparison engine: 6 range types, expense/income/cashflow, 12 tests
+- Comparison engine: 6 range types, 12 tests
 - **Immutable rule:** Every displayed number must come from the finance engine
 
-### New Components
-- `LedgerReport` — monthly report view
-- `ImportFlow` — staged import sheet
-- `AccountsView` — account list with tap-to-filter
-- `AllMonthsBarChart` — full-width income/expense bar chart
-- `MonthPicker` — custom month dropdown
-- `ComparisonPills` — range selector
-- `DatePicker` — custom date picker (replaces all native date inputs)
-- `Select` — reusable dropdown (replaces all native selects)
-- `categories.ts` — category hierarchy + keyword mapping + autoCategorize
-
-## v0.10.1 — Premium Polish Pass
-
-### Visual
-- Summary values: 44px/64px, net worth: 40px/56px, report title: 36px/56px
-- Bar chart 4x larger, full-bleed width, gridlines, section heading
-- Colors: `#099019` green, `#ff255f` red via CSS variables
-- Warm dark mode (`#3A3228` bg), localStorage persistence, system preference respect
-- 3-zone header: logo left, nav centered, search+theme right. Seamless with page.
-- No header border, page background matches header background
-
 ### Components
-- Custom DatePicker: replaces all 6 `<input type="date">` across the app
-- Custom Select: replaces all native `<select>` across 7 component files
-- Import modal: premium redesign with editorial header, progress indicator, trust info
-- Navbar icons: lucide-react with CSS sizing
-
-## Key Files
-
-### New (v0.10.x)
-- `src/components/ledger-report.tsx` — Monthly report
-- `src/components/import-flow.tsx` — Staged import sheet
-- `src/components/accounts-view.tsx` — Accounts list
-- `src/components/all-months-chart.tsx` — Full-width bar chart
-- `src/components/month-picker.tsx` — Custom month dropdown
-- `src/components/comparison-pills.tsx` — Range pills
-- `src/components/date-picker.tsx` — Custom date picker
-- `src/components/select.tsx` — Reusable dropdown
-- `src/lib/data/categories.ts` — Category hierarchy + keyword mapping
-- `src/lib/finance/comparisons.ts` — Comparison range engine
-
-### Modified
-- `src/app/app/page.tsx` — 5-tab nav, shared filter state, theme toggle
-- `src/app/globals.css` — Premium report styles (~1550 lines)
-- `src/lib/data/csv-import.ts` — Auto-categorize integration
-- `src/lib/data/persistence.ts` — Category learning persistence
-- `src/lib/data/types.ts` — LearnedCategory, subcategory on Transaction
-- `src/lib/finance/totals.ts` — Month-scoped helpers + month-over-month
-- `src/lib/finance/budgets.ts` — averageSpendingByCategory
-- `src/components/budgets-panel.tsx` — Budget suggestions from import data
-- `src/components/goals-panel.tsx` — Budget-first gate
-- `src/components/transactions-view.tsx` — Date picker filters
-- `src/components/search-view.tsx` — Date picker filters
-- `src/components/recurring-panel.tsx` — Date picker + select components
-- `src/components/goals-panel.tsx` — Date picker
+- `LedgerReport`, `ImportFlow`, `AccountsView`, `AllMonthsBarChart`
+- `MonthPicker`, `ComparisonPills`, `DatePicker`, `Select`
+- `categories.ts` — category hierarchy + keyword mapping
 
 ## Rules
 
-1. **Local-first.** Do not add backend services, authentication, or cloud sync.
+1. **Local-first.** Guest mode is default. No account required.
 2. **No tracking.** No analytics, no telemetry, no third-party scripts.
 3. **Finance engine immutable rule.** Every displayed number must come from `src/lib/finance/` helpers.
 4. **Calm UX.** Avoid financial gamification, urgency patterns, or manipulative UI.
 5. **Design system.** OpenProof Design Playbook — editorial layout, pill buttons, accent color #7A2F00.
 6. **Branch naming:** `feat/*`, `fix/*`, `docs/*`, `refactor/*`, `chore/*`.
+7. **Auth:** Rebuilt matching OpenSprout's pattern. Middleware has zero auth logic. All auth state comes from server callback + `useAuth()` hook.
 
 ## Ecosystem Standards
 
