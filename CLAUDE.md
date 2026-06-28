@@ -5,12 +5,13 @@
 OpenLedger is a private, local-first finance tool for everyday budgeting and records.
 Built with Next.js + TypeScript. Formerly QuietLedger.
 
-**Current Release:** v0.10.6 (2026-06-27)
+**Current Release:** v0.10.7 (2026-06-27)
 **Live domain:** https://ledger.kovina.org
-**Deploy status:** Production — PR #4 merged.
+**Deploy status:** Production — PR #5 merged. All releases deployed.
 
 Releases:
-           v0.10.6 — Accounts & Reconciliation (reconciliation workflow, opening/closing balances, balance adjustments, statement reconciliation, account health scoring, filtered views)
+           v0.10.7 — Search & Financial Memory (merchant profiles, advanced search engine, saved searches, timeline navigation, monthly highlights, year summaries)
+           v0.10.6 — Accounts & Reconciliation (reconciliation workflow, opening/closing balances, balance adjustments, statement reconciliation, account health scoring)
            v0.10.5 — Budgets That Learn (automatic recommendations, rolling averages, budget health, forecasting, category rollover, history, adjustment suggestions)
            v0.10.4 — Financial Insights (report modes, spending trends, category growth/decline, merchant summaries, cashflow timeline, savings rate, income consistency)
            v0.10.3 — Import Intelligence & Global Currency Foundation (multi-currency, exchange rates, international CSV, bank format registry, USDC default, Settings currency picker)
@@ -35,7 +36,7 @@ Releases:
 - **Deployment:** Vercel → https://ledger.kovina.org
 - **GitHub:** https://github.com/sparshsam/openledger
 
-## Status — v0.10.6 (Accounts & Reconciliation)
+## Status — v0.10.7 (Search & Financial Memory)
 
 ### Auth — Complete Rebuild (June 27)
 The Google OAuth auth flow was completely rebuilt after root cause analysis revealed a Supabase **project mismatch**: the auth cookie was being set for OpenSprout's project (`rbdyrymtgfqqkdemicdo`) instead of OpenLedger's (`qoxmibmbyjmkntzrckyr`). This happened because `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` was missing from Vercel env (so the server callback silently failed), AND stale OpenSprout cookies on localhost were being read as valid sessions.
@@ -93,7 +94,7 @@ npm run dev       # Next.js dev server (localhost:3000)
 npm run build     # Production build
 npm run lint      # ESLint
 npm run typecheck # TypeScript type check
-npx vitest run    # Run tests (104 tests)
+npx vitest run    # Run tests (314 tests)
 npx vercel deploy --prod  # Deploy to Vercel (rate-limited to 100/day on free plan)
 npx vercel alias set <deploy-id> ledger.kovina.org  # Explicit production alias
 ```
