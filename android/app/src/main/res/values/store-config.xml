@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Store listing configuration -->
+    <string name="store_title">OpenLedger</string>
+    <string name="store_short_desc">Private, editorial personal finance ledger</string>
+    <string name="store_full_desc">OpenLedger is a local-first finance tool for everyday budgeting and records. Your financial data stays on your device — no accounts required, no cloud dependency, no tracking.
+
+Features:
+• Monthly financial reports with income/expense breakdown
+• Import from bank CSV — auto-categorize transactions
+• Multi-currency support with exchange rates
+• Smart budgets that learn from your spending
+• Transaction search with advanced filters
+• Financial insights and spending trends
+• Reconciliation workflow
+• Dark mode
+• Service worker offline support
+• Fully open source (AGPL-3.0)</string>
+    <string name="store_category">FINANCE</string>
+    <!-- Age rating: 4+ — no mature content -->
+    <string name="store_age_rating">4</string>
+</resources>

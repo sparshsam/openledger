@@ -1,6 +1,6 @@
 {
   "name": "openledger",
-  "version": "0.10.2",
+  "version": "0.12.0",
   "description": "A private, editorial personal finance ledger.",
   "private": true,
   "license": "AGPL-3.0-or-later",
@@ -21,7 +21,9 @@
     "local-first",
     "privacy",
     "csv-import",
-    "pwa"
+    "pwa",
+    "capacitor",
+    "android"
   ],
   "scripts": {
     "dev": "next dev",
@@ -30,9 +32,24 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "export": "next build && next export",
+    "capacitor:sync": "npx cap sync",
+    "capacitor:open:android": "npx cap open android",
+    "capacitor:build:android": "npx cap build android",
+    "electron:start": "cd electron && electron .",
+    "electron:build:win": "cd electron && npm run build:win",
+    "electron:build:linux": "cd electron && npm run build:linux"
   },
   "dependencies": {
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/camera": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/local-notifications": "^8.0.0",
+    "@capacitor/push-notifications": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@sentry/nextjs": "^10.61.0",
     "@supabase/ssr": "^0.12.0",
@@ -41,9 +58,11 @@
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@codetrix-studio/capacitor-google-auth": "3.4.0-rc.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

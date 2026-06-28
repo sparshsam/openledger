@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // For Capacitor native builds, the WebView points to https://ledger.kovina.org
+  // (not a local bundle), so API routes work normally. For offline-native builds
+  // use `output: "export"` and set NEXT_PUBLIC_API_ORIGIN to the deployed URL.
 
   async headers() {
     return [

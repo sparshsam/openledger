@@ -1,0 +1,42 @@
+{
+  "name": "openledger-desktop",
+  "version": "1.0.0",
+  "description": "OpenLedger — Private personal finance ledger",
+  "main": "main.js",
+  "author": "OpenLedger Team",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:mac": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "org.kovina.ledger",
+    "productName": "OpenLedger",
+    "directories": {
+      "output": "../dist/electron"
+    },
+    "files": [
+      "main.js",
+      "../out/**/*",
+      "../public/**/*"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "../public/icons/icon-512x512.png"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "../public/icons/"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "../public/icons/icon-512x512.png"
+    }
+  }
+}
