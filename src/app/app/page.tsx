@@ -7,6 +7,7 @@ import {
   Archive,
   ArrowRightLeft,
   Banknote,
+  BarChart3,
   BookOpen,
   CheckCircle2,
   CircleDollarSign,
@@ -52,7 +53,7 @@ import {
 } from "@/lib/data/persistence";
 import { ledgerData } from "@/lib/data/seed";
 import { createScreenshotLedgerData } from "@/lib/data/screenshot-seed";
-import type { Account, AccountKind, Budget, Goal, ImportMetadata, ImportSession, LearnedCategory, RecurringEntry, Transaction } from "@/lib/data/types";
+import type { Account, AccountKind, Budget, CategorizationRule, Goal, ImportMetadata, ImportSession, LearnedCategory, MerchantAlias, RecurringEntry, Transaction } from "@/lib/data/types";
 import type { CurrencySettings } from "@/lib/data/types";
 import { DEFAULT_CURRENCY_SETTINGS } from "@/lib/data/types";
 import { PwaRegister } from "@/components/pwa-register";
@@ -65,23 +66,25 @@ import { GoalsPanel } from "@/components/goals-panel";
 import { RecurringPanel } from "@/components/recurring-panel";
 import { ReceiptGallery } from "@/components/receipt-gallery";
 import { DataManagementPanel } from "@/components/data-management-panel";
+import { AutomationPanel } from "@/components/automation/automation-panel";
 import { McpTokensPanel } from "@/components/mcp-tokens-panel";
 import { ErrorBoundary } from "@/components/error-boundary";
 
 import { LedgerReport } from "@/components/ledger-report";
+import { ReportsView } from "@/components/reports-view";
 import { ImportFlow } from "@/components/import-flow";
 import { AccountsView } from "@/components/accounts-view";
 import { Select } from "@/components/select";
 import { DatePicker } from "@/components/date-picker";
 import { CurrencySettingsPanel } from "@/components/currency-settings-panel";
-import { recordCategoryLearning, loadCategoryLearnings, loadCurrencySettings, saveCurrencySettings } from "@/lib/data/persistence";
+import { recordCategoryLearning, loadCategoryLearnings, loadCurrencySettings, saveCurrencySettings, loadCategorizationRules, saveCategorizationRules, loadMerchantAliases, saveMerchantAliases } from "@/lib/data/persistence";
 
 const currency = new Intl.NumberFormat("en-CA", {
   style: "currency",
   currency: "CAD",
 });
 
-const TABS = ["Ledger", "Transactions", "Accounts", "Goals", "Settings"] as const;
+const TABS = ["Ledger", "Transactions", "Accounts", "Goals", "Reports", "Settings"] as const;
 type Tab = (typeof TABS)[number];
 
 const accountIcons: Record<AccountKind, typeof Banknote> = {
@@ -191,6 +194,8 @@ export default function Home() {
   const [activeAccountFilter, setActiveAccountFilter] = useState<string | null>(null);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string | null>(null);
   const [categoryLearnings, setCategoryLearnings] = useState<LearnedCategory[]>([]);
+  const [rules, setRules] = useState<CategorizationRule[]>([]);
+  const [aliases, setAliases] = useState<MerchantAlias[]>([]);
   const [importCreateMode, setImportCreateMode] = useState(false);
   const [importCreateModeName, setImportCreateModeName] = useState("");
   const [importCreateModeKind, setImportCreateModeKind] = useState<AccountKind>("chequing");
@@ -306,7 +311,7 @@ export default function Home() {
       screenshotModeRef.current = true;
       const demo = createScreenshotLedgerData();
       applyLedgerState({
-        schemaVersion: 2,
+        schemaVersion: 3,
         savedAt: new Date().toISOString(),
         accounts: demo.accounts,
         transactions: demo.transactions,
@@ -336,6 +341,8 @@ export default function Home() {
           (result.source === "saved" ? "Local ledger restored from this browser." : "Demo ledger loaded. Changes will save locally."),
       );
       setCategoryLearnings(loadCategoryLearnings(window.localStorage));
+      setRules(loadCategorizationRules(window.localStorage));
+      setAliases(loadMerchantAliases(window.localStorage));
       const savedCurrencySettings = loadCurrencySettings(window.localStorage);
       if (savedCurrencySettings) setCurrencySettings(savedCurrencySettings);
       setHydrated(true);
@@ -371,6 +378,18 @@ export default function Home() {
     if (!hydrated) return;
     saveCurrencySettings(window.localStorage, currencySettings);
   }, [hydrated, currencySettings]);
+
+  // Persist categorization rules
+  useEffect(() => {
+    if (!hydrated) return;
+    saveCategorizationRules(window.localStorage, rules);
+  }, [hydrated, rules]);
+
+  // Persist merchant aliases
+  useEffect(() => {
+    if (!hydrated) return;
+    saveMerchantAliases(window.localStorage, aliases);
+  }, [hydrated, aliases]);
 
   // Quick jump keyboard shortcut (Ctrl+K / Cmd+K)
   useEffect(() => {
@@ -890,7 +909,22 @@ export default function Home() {
           </div>
           </ErrorBoundary>
 
-        
+        ) : activeTab === "Reports" ? (
+          <ErrorBoundary key="reports">
+          <div className="narrow">
+            <ReportsView
+              transactions={transactions}
+              accounts={accounts}
+              budgets={budgets}
+              baseCurrency={currencySettings.baseCurrency}
+              locale={currencySettings.locale}
+              onMonthChange={setActiveMonth}
+              activeCategory={activeCategoryFilter}
+              activeAccountId={activeAccountFilter}
+            />
+          </div>
+          </ErrorBoundary>
+
         ) : activeTab === "Settings" ? (
           <ErrorBoundary key="settings">
           <div className="narrow">
@@ -929,9 +963,47 @@ export default function Home() {
                 <div className="settings-panel-content">
                   <div className="settings-panel-section">
                     <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Export, import, or reset your local ledger.</p>
-                    <DataManagementPanel user={user} ledgerData={{ accounts, transactions, importMetadata, budgets, goals }} onResetToDemo={resetToDemoData} onClearLocal={clearLocalData} />
+                    <DataManagementPanel
+                      user={user}
+                      ledgerData={{ accounts, transactions, importMetadata, budgets, goals }}
+                      fullLedgerData={{ accounts, transactions, monthlySnapshots, memories, forecastItems, importMetadata, importSessions, budgets, goals, recurringEntries, categoryLearnings, currencySettings }}
+                      onResetToDemo={resetToDemoData}
+                      onClearLocal={clearLocalData}
+                    />
                   </div>
                 </div>
+              </div>
+            </details>
+
+            {/* Automation */}
+            <details className="settings-section">
+              <summary>Automation</summary>
+              <div className="settings-section-content">
+                <AutomationPanel
+                  rules={rules}
+                  aliases={aliases}
+                  transactions={transactions}
+                  aliasSuggestions={[]}
+                  onSaveRule={(rule) => {
+                    setRules((prev) =>
+                      prev.some((r) => r.id === rule.id)
+                        ? prev.map((r) => (r.id === rule.id ? rule : r))
+                        : [...prev, rule],
+                    );
+                  }}
+                  onDeleteRule={(id) => {
+                    setRules((prev) => prev.filter((r) => r.id !== id));
+                  }}
+                  onReorderRules={(updated) => {
+                    setRules(updated);
+                  }}
+                  onSaveAlias={(alias) => {
+                    setAliases((prev) => [...prev, alias]);
+                  }}
+                  onDeleteAlias={(id) => {
+                    setAliases((prev) => prev.filter((a) => a.id !== id));
+                  }}
+                />
               </div>
             </details>
 
@@ -1145,6 +1217,7 @@ export default function Home() {
             Transactions: <ArrowRightLeft size={20} />,
             Accounts: <Landmark size={20} />,
             Goals: <Target size={20} />,
+            Reports: <BarChart3 size={20} />,
             Settings: <Settings size={20} />,
           };
           return (

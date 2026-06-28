@@ -15,3 +15,4 @@ export * from "./reconciliation";
 export * from "./merchant-profiles";
 export * from "./advanced-search";
 export * from "./highlights";
+export * from "./reports";

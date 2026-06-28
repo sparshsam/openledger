@@ -45,6 +45,9 @@ export type Transaction = {
   // Transfer detection (v0.10.3)
   isTransfer?: boolean;
   pairedTransactionId?: string;
+
+  // Auto-tagging (v0.10.9)
+  tags?: string[];
 };
 
 // ─── Import Types ───────────────────────────────────────────────────────────
@@ -161,6 +164,36 @@ export type LearnedCategory = {
   child: string;
 };
 
+// ─── Automation Types (v0.10.9) ─────────────────────────────────────────────
+
+export type RuleConditionField = "description" | "merchant" | "amount" | "accountId" | "category";
+export type RuleConditionOperator = "contains" | "equals" | "gt" | "lt" | "gte" | "lte";
+
+export type RuleCondition = {
+  field: RuleConditionField;
+  operator: RuleConditionOperator;
+  value: string;
+};
+
+export type CategorizationRule = {
+  id: string;
+  name: string;
+  priority: number;
+  conditions: RuleCondition[];
+  setCategory: string;
+  setSubcategory?: string;
+  enabled: boolean;
+  createdAt: string;
+};
+
+export type MerchantAlias = {
+  id: string;
+  alias: string;
+  canonicalName: string;
+  category?: string;
+  createdAt: string;
+};
+
 // ─── Patterns, Snapshots, and Insights ──────────────────────────────────────
 
 export type CategoryPattern = {
@@ -265,7 +298,7 @@ export type LedgerData = {
 };
 
 export type PersistedLedgerState = {
-  schemaVersion: 2; // bumped from 1 for currency support
+  schemaVersion: 3; // bumped from 2 for reports + automation
   savedAt: string;
   accounts: Account[];
   transactions: Transaction[];
