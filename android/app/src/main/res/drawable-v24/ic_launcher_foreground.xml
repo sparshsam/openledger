@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- OpenLedger "O" letterform icon — centered, scaled for 72dp safe zone -->
+    <group
+        android:translateX="22"
+        android:translateY="22"
+        android:scaleX="0.56"
+        android:scaleY="0.56">
+        <!-- Outer circle (ledger ring) -->
+        <path
+            android:fillColor="#7A2F00"
+            android:pathData="M32,4C16.5,4 4,16.5 4,32s12.5,28 28,28s28,-12.5 28,-28S47.5,4 32,4zM32,52C20.9,52 12,43.1 12,32s8.9,-20 20,-20s20,8.9 20,20S43.1,52 32,52z" />
+        <!-- Inner "L" ledger mark -->
+        <path
+            android:fillColor="#F5F0E8"
+            android:pathData="M24,22v20h16v-4h-12v-16z" />
+    </group>
+</vector>
