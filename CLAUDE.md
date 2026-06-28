@@ -5,13 +5,13 @@
 OpenLedger is a private, local-first finance tool for everyday budgeting and records.
 Built with Next.js + TypeScript. Formerly QuietLedger.
 
-**Current Release:** v0.10.3 (2026-06-27)
+**Current Release:** v0.10.4 (2026-06-27)
 **Live domain:** https://ledger.kovina.org
-**Deploy status:** Production — deployed.
+**Deploy status:** Production — PR #2 merged.
 
 Releases:
+           v0.10.4 — Financial Insights (report modes, spending trends, category growth/decline, merchant summaries, cashflow timeline, savings rate, income consistency)
            v0.10.3 — Import Intelligence & Global Currency Foundation (multi-currency, exchange rates, international CSV, bank format registry, USDC default, Settings currency picker)
-           v0.10.2 — Auth rebuild, CDN caching fix, premium polish, dark mode, custom DatePicker/Select
            v0.10.1 — CDN caching fix, premium polish, dark mode
            v0.10.0 — Financial Report Redesign — Ledger tab as monthly report, "Where Did My Money Go?", comparison engine, all-months bar chart, staged import flow, budgets from spending data, category learning
            v0.9.12 — Domain migration + import modal + cleanup
@@ -33,7 +33,7 @@ Releases:
 - **Deployment:** Vercel → https://ledger.kovina.org
 - **GitHub:** https://github.com/sparshsam/openledger
 
-## Status — v0.10.3 (Import Intelligence & Global Currency Foundation)
+## Status — v0.10.4 (Financial Insights)
 
 ### Auth — Complete Rebuild (June 27)
 The Google OAuth auth flow was completely rebuilt after root cause analysis revealed a Supabase **project mismatch**: the auth cookie was being set for OpenSprout's project (`rbdyrymtgfqqkdemicdo`) instead of OpenLedger's (`qoxmibmbyjmkntzrckyr`). This happened because `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` was missing from Vercel env (so the server callback silently failed), AND stale OpenSprout cookies on localhost were being read as valid sessions.
@@ -91,7 +91,7 @@ npm run dev       # Next.js dev server (localhost:3000)
 npm run build     # Production build
 npm run lint      # ESLint
 npm run typecheck # TypeScript type check
-npx vitest run    # Run tests (229 tests)
+npx vitest run    # Run tests (104 tests)
 npx vercel deploy --prod  # Deploy to Vercel (rate-limited to 100/day on free plan)
 npx vercel alias set <deploy-id> ledger.kovina.org  # Explicit production alias
 ```
