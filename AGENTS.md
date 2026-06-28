@@ -8,9 +8,9 @@ OpenLedger is a private, local-first finance tool. Warm ledger aesthetic, editor
 
 ## Current Release
 
-**v0.10.4** (2026-06-27) — Financial Insights
+**v0.10.5** (2026-06-27) — Budgets That Learn
 **Live domain:** https://ledger.kovina.org
-**Status:** Production — spending trends, cashflow timeline, savings rate, merchant analysis. All 275 tests pass.
+**Status:** Production — budget recommendations, health indicators, forecasting. All 289 tests pass.
 
 ## Auth — Complete Rebuild (June 27)
 
