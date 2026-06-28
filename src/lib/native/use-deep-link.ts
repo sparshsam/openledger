@@ -34,11 +34,10 @@ export function useDeepLink() {
 
           setLastLink(link);
 
-          if (link.path.includes("auth/callback")) {
-            if (typeof window !== "undefined") {
-              window.location.href = url;
-            }
-          }
+          // Auth callbacks are handled by google-sign-in.ts:
+          // listenForAuthCallback() extracts the code and calls
+          // supabase.auth.exchangeCodeForSession() directly.
+          // No window.location redirect needed for custom scheme URLs.
         });
         cleanup = () => { handler.remove(); };
       } catch {
