@@ -1,15 +1,17 @@
 import { ledgerData } from "./seed";
 import type {
+  CategorizationRule,
   CurrencySettings,
   ImportSession,
   LearnedCategory,
+  MerchantAlias,
   PersistedLedgerState,
 } from "./types";
 
 import { DEFAULT_BASE_CURRENCY } from "@/lib/finance/currency";
 
 export const LEDGER_STORAGE_KEY = "openledger.localLedger.v2";
-export const LEDGER_SCHEMA_VERSION = 2;
+export const LEDGER_SCHEMA_VERSION = 3;
 
 export const CURRENCY_SETTINGS_KEY = "openledger.currencySettings";
 export const IMPORT_SESSIONS_KEY = "openledger.importSessions";
@@ -398,6 +400,40 @@ export function removeImportSession(
   const updated = current.filter((s) => s.id !== sessionId);
   saveImportSessions(storage, updated);
   return updated;
+}
+
+// ─── Categorization Rules Persistence ────────────────────────────────────────
+
+const RULES_KEY = "openledger_categorization_rules";
+
+export function loadCategorizationRules(storage: Storage): CategorizationRule[] {
+  try {
+    const raw = storage.getItem(RULES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCategorizationRules(storage: Storage, rules: CategorizationRule[]): void {
+  storage.setItem(RULES_KEY, JSON.stringify(rules));
+}
+
+// ─── Merchant Aliases Persistence ────────────────────────────────────────────
+
+const ALIASES_KEY = "openledger_merchant_aliases";
+
+export function loadMerchantAliases(storage: Storage): MerchantAlias[] {
+  try {
+    const raw = storage.getItem(ALIASES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveMerchantAliases(storage: Storage, aliases: MerchantAlias[]): void {
+  storage.setItem(ALIASES_KEY, JSON.stringify(aliases));
 }
 
 // ─── Utility ────────────────────────────────────────────────────────────────

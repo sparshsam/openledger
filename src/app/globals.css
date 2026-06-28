@@ -531,7 +531,23 @@ main.narrow, .narrow { max-width: 720px; margin-inline: auto; width: 100%; paddi
 .legal-footer nav a:hover { color: var(--text); }
 
 /* ── Print ── */
-@media print { .navbar, .storage-live-region, .skip-link { display: none !important; } }
+@media print {
+  body { background: white !important; color: black !important; }
+  .navbar, .storage-live-region, .skip-link,
+  .bottom-tabs, .navbar-search-btn, button:not(.print-button):not(.no-print),
+  .pill, .pill-primary, .pill-secondary, .pill-ghost,
+  .report-actions, .filter-bar, .comparison-pills-wrap { display: none !important; }
+  main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  main > * { padding-left: 0 !important; padding-right: 0 !important; }
+  .month-summary-value { font-size: 36px !important; }
+  .report-title { font-size: 28px !important; }
+  .chart-svg { max-width: 100% !important; border: 1px solid #ddd !important; }
+  .page-break { page-break-before: always; }
+  .no-break { page-break-inside: avoid; }
+  a { color: inherit !important; text-decoration: none !important; }
+  .editorial-row { break-inside: avoid; }
+  .progress-track { border: 1px solid #ddd !important; }
+}
 
 /* ── Account management helpers (from page.tsx helpers) ── */
 .managed-account-list { margin-top: var(--space-md); }
